@@ -1,0 +1,14 @@
+import { query } from '../src/lib/db';
+
+async function main() {
+  try {
+    await query(`ALTER TABLE condolences ADD COLUMN status ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING'`);
+    console.log("condolences status column added successfully");
+  } catch (error) {
+    console.error("Error:", error);
+  } finally {
+    process.exit(0);
+  }
+}
+
+main();

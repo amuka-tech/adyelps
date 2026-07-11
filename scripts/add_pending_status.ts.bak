@@ -1,0 +1,14 @@
+import { query } from '../src/lib/db';
+
+async function main() {
+  try {
+    await query(`ALTER TABLE users MODIFY account_status ENUM('ACTIVE', 'SUSPENDED', 'BANNED', 'PENDING') DEFAULT 'PENDING'`);
+    console.log("account_status updated successfully");
+  } catch (error) {
+    console.error("Error:", error);
+  } finally {
+    process.exit(0);
+  }
+}
+
+main();

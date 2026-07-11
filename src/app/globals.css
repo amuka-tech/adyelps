@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  
+  --color-maroon: #800000;
+  --color-maroon-dark: #600000;
+  --color-white: #ffffff;
+  --color-pink: #ffc0cb;
+  --color-skyblue: #87ceeb;
+  --color-darkblue: #00008b;
+  
+  --font-outfit: 'Outfit', sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-maroon: var(--color-maroon);
+  --color-maroon-dark: var(--color-maroon-dark);
+  --color-white: var(--color-white);
+  --color-pink: var(--color-pink);
+  --color-skyblue: var(--color-skyblue);
+  --color-darkblue: var(--color-darkblue);
+  
+  --font-sans: var(--font-outfit);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}

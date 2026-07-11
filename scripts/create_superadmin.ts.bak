@@ -1,0 +1,46 @@
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+
+const prisma = new PrismaClient();
+
+async function main() {
+  const email = 'superadmin@adyel.com';
+  const password = await bcrypt.hash('Admin2026!', 10);
+
+  // Check if exists
+  let user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        first_name: 'System',
+        last_name: 'Administrator',
+        email: email,
+        password_hash: password,
+        role: 'SUPER_ADMIN' // Legacy enum
+      }
+    });
+    console.log("Created user:", user.email);
+  }
+
+  // Assign SUPER_ADMIN role (ID 1)
+  await prisma.userRole.upsert({
+    where: {
+      user_id_role_id: {
+        user_id: user.id,
+        role_id: 1 // SUPER_ADMIN
+      }
+    },
+    update: {},
+    create: {
+      user_id: user.id,
+      role_id: 1
+    }
+  });
+
+  console.log("Assigned Super Admin role to", email);
+}
+
+main()
+  .catch(console.error)
+  .finally(() => prisma.$disconnect());
