@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -8,12 +7,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const params = await context.params;
     const eventId = params.id;
 
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    const user: any = await verifyToken(token);
-    if (!user) {
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -23,29 +20,47 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       return NextResponse.json({ error: 'Invalid ticket selection' }, { status: 400 });
     }
 
-    // Get tier details to calculate price
-    const tierResult: any = await query(`SELECT price, capacity FROM event_ticket_tiers WHERE id = ? AND event_id = ?`, [tier_id, eventId]);
-    if (!tierResult || tierResult.length === 0) {
+    const { data: tier, error: tierError } = await supabase
+      .from('event_ticket_tiers')
+      .select('price, capacity')
+      .eq('id', tier_id)
+      .eq('event_id', eventId)
+      .single();
+
+    if (tierError || !tier) {
       return NextResponse.json({ error: 'Ticket tier not found' }, { status: 404 });
     }
 
-    const tier = tierResult[0];
     const totalPaid = tier.price * quantity;
 
-    // Optional: check capacity
     if (tier.capacity !== null) {
-      const soldResult: any = await query(`SELECT SUM(quantity) as sold FROM event_tickets WHERE tier_id = ? AND status = 'PAID'`, [tier_id]);
-      const sold = soldResult[0]?.sold || 0;
+      const { data: tickets, error: ticketsError } = await supabase
+        .from('event_tickets')
+        .select('quantity')
+        .eq('tier_id', tier_id)
+        .eq('status', 'PAID');
+        
+      if (ticketsError) throw ticketsError;
+      
+      const sold = tickets.reduce((acc: number, curr: any) => acc + curr.quantity, 0);
+      
       if (sold + quantity > tier.capacity) {
         return NextResponse.json({ error: 'Not enough tickets available in this tier' }, { status: 400 });
       }
     }
 
-    // Insert ticket
-    await query(`
-      INSERT INTO event_tickets (event_id, tier_id, user_id, quantity, total_paid, status)
-      VALUES (?, ?, ?, ?, ?, 'PAID')
-    `, [eventId, tier_id, user.id, quantity, totalPaid]);
+    const { error: insertError } = await supabase
+      .from('event_tickets')
+      .insert({
+        event_id: eventId,
+        tier_id,
+        user_id: user.id,
+        quantity,
+        total_paid: totalPaid,
+        status: 'PAID'
+      });
+
+    if (insertError) throw insertError;
 
     return NextResponse.json({ message: 'Ticket purchased successfully' });
   } catch (error: any) {

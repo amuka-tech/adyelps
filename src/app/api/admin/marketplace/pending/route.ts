@@ -1,34 +1,47 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
-    const user: any = await verifyToken(token);
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (!userData || (userData.role !== 'ADMIN' && userData.role !== 'SUPER_ADMIN')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Get both pending for approval AND active for toggling featured status
-    const pendingBusinesses = await query(`
-      SELECT b.*, u.first_name, u.last_name, u.email 
-      FROM businesses b
-      JOIN users u ON b.owner_id = u.id
-      WHERE b.status = 'PENDING'
-      ORDER BY b.created_at ASC
-    `);
+    const { data: rawPendingBusinesses, error: pendingError } = await supabase
+      .from('businesses')
+      .select('*, users (first_name, last_name, email)')
+      .eq('status', 'PENDING')
+      .order('created_at', { ascending: true });
 
-    const activeBusinesses = await query(`
-      SELECT b.id, b.business_name, b.category, b.is_featured 
-      FROM businesses b
-      WHERE b.status = 'ACTIVE'
-      ORDER BY b.business_name ASC
-    `);
+    if (pendingError) throw pendingError;
+
+    // Flatten user fields to match original SQL response
+    const pendingBusinesses = rawPendingBusinesses?.map((b: any) => {
+      const userObj = Array.isArray(b.users) ? b.users[0] : b.users;
+      const flatB = {
+        ...b,
+        first_name: userObj?.first_name,
+        last_name: userObj?.last_name,
+        email: userObj?.email,
+      };
+      delete flatB.users;
+      return flatB;
+    }) || [];
+
+    const { data: activeBusinesses, error: activeError } = await supabase
+      .from('businesses')
+      .select('id, business_name, category, is_featured')
+      .eq('status', 'ACTIVE')
+      .order('business_name', { ascending: true });
+
+    if (activeError) throw activeError;
 
     return NextResponse.json({ pendingBusinesses, activeBusinesses });
   } catch (error: any) {

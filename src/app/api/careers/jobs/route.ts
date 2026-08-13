@@ -1,16 +1,11 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    
-    // Ensure the user is logged in
-    const user: any = await verifyToken(token);
+    const supabase = createClient(await cookies());
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
@@ -18,32 +13,42 @@ export async function GET(request: Request) {
     const location = searchParams.get('location');
     const jobType = searchParams.get('job_type');
 
-    let sql = `
-      SELECT j.*, u.first_name, u.last_name 
-      FROM jobs j
-      JOIN users u ON j.posted_by_id = u.id
-      WHERE j.status = 'ACTIVE' 
-      AND j.created_at >= datetime('now', '-30 days')
-    `;
-    const params: any[] = [];
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    let query = supabase
+      .from('jobs')
+      .select(`
+        *,
+        users (
+          first_name,
+          last_name
+        )
+      `)
+      .eq('status', 'ACTIVE')
+      .gte('created_at', thirtyDaysAgo.toISOString())
+      .order('created_at', { ascending: false });
 
     if (industry) {
-      sql += ` AND j.industry = ?`;
-      params.push(industry);
+      query = query.eq('industry', industry);
     }
     if (location) {
-      sql += ` AND j.location LIKE ?`;
-      params.push(`%${location}%`);
+      query = query.ilike('location', `%${location}%`);
     }
     if (jobType) {
-      sql += ` AND j.job_type = ?`;
-      params.push(jobType);
+      query = query.eq('job_type', jobType);
     }
 
-    sql += ` ORDER BY j.created_at DESC`;
-    
-    const jobs = await query(sql, params);
-    return NextResponse.json({ jobs });
+    const { data: jobs, error } = await query;
+    if (error) throw error;
+
+    const formattedJobs = jobs?.map((j: any) => ({
+      ...j,
+      first_name: j.users?.first_name,
+      last_name: j.users?.last_name
+    })) || [];
+
+    return NextResponse.json({ jobs: formattedJobs });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -51,11 +56,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    
-    const user: any = await verifyToken(token);
+    const supabase = createClient(await cookies());
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
@@ -66,13 +68,26 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const insertResult: any = await query(
-      `INSERT INTO jobs (posted_by_id, title, company, industry, location, job_type, description, requirements, application_link, offers_referral) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [user.id, title, company, industry, location, job_type, description, requirements, application_link || null, offers_referral ? 1 : 0]
-    );
+    const { data, error } = await supabase
+      .from('jobs')
+      .insert({
+        posted_by_id: user.id,
+        title,
+        company,
+        industry,
+        location,
+        job_type,
+        description,
+        requirements,
+        application_link: application_link || null,
+        offers_referral: offers_referral ? 1 : 0
+      })
+      .select('id')
+      .single();
+      
+    if (error) throw error;
 
-    return NextResponse.json({ message: 'Job submitted for review', id: insertResult.insertId }, { status: 201 });
+    return NextResponse.json({ message: 'Job submitted for review', id: data.id }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

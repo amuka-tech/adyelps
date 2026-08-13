@@ -1,27 +1,15 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import * as jose from 'jose';
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_for_development_only_please_change');
-
-async function getSuperAdminFromCookie() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('auth_token')?.value;
-  if (!token) return null;
-  try {
-    const { payload } = await jose.jwtVerify(token, JWT_SECRET);
-    if (payload.role !== 'SUPER_ADMIN' && (!(payload as any).assignedRoles || !(payload as any).assignedRoles.includes('Super Admin'))) return null;
-    return payload as any;
-  } catch (err) {
-    return null;
-  }
-}
 
 export async function GET(request: Request) {
   try {
-    const admin = await getSuperAdminFromCookie();
-    if (!admin) {
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized. Super Admin access required.' }, { status: 401 });
+
+    const { data: dbUser } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (!dbUser || dbUser.role !== 'SUPER_ADMIN') {
       return NextResponse.json({ error: 'Unauthorized. Super Admin access required.' }, { status: 401 });
     }
 
@@ -32,19 +20,19 @@ export async function GET(request: Request) {
       obituariesResult,
       jobsResult,
       bizResult
-    ]: any[] = await Promise.all([
-      query(`SELECT COUNT(*) as count FROM users`),
-      query(`SELECT SUM(raised_amount) as total FROM projects`),
-      query(`SELECT SUM(amount_gross) as total FROM contributions WHERE status = 'VERIFIED'`),
-      query(`SELECT COUNT(*) as count FROM jobs WHERE status = 'ACTIVE'`),
-      query(`SELECT COUNT(*) as count FROM businesses WHERE status = 'ACTIVE'`)
+    ] = await Promise.all([
+      supabase.from('users').select('*', { count: 'exact', head: true }),
+      supabase.from('projects').select('raised_amount'),
+      supabase.from('contributions').select('amount_gross').eq('status', 'VERIFIED'),
+      supabase.from('jobs').select('*', { count: 'exact', head: true }).eq('status', 'ACTIVE'),
+      supabase.from('businesses').select('*', { count: 'exact', head: true }).eq('status', 'ACTIVE')
     ]);
 
-    const totalUsers = usersResult[0].count;
-    const totalProjectsRaised = projectsResult[0].total || 0;
-    const totalWelfareRaised = obituariesResult[0].total || 0;
-    const totalActiveJobs = jobsResult[0].count;
-    const totalActiveBiz = bizResult[0].count;
+    const totalUsers = usersResult.count || 0;
+    const totalProjectsRaised = projectsResult.data?.reduce((sum, p) => sum + Number(p.raised_amount), 0) || 0;
+    const totalWelfareRaised = obituariesResult.data?.reduce((sum, c) => sum + Number(c.amount_gross), 0) || 0;
+    const totalActiveJobs = jobsResult.count || 0;
+    const totalActiveBiz = bizResult.count || 0;
 
     return NextResponse.json({ 
       stats: {

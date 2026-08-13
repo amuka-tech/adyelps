@@ -1,26 +1,13 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import * as jose from 'jose';
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_for_development_only_please_change');
-
-async function getUserFromCookie() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('auth_token')?.value;
-  if (!token) return null;
-  try {
-    const { payload } = await jose.jwtVerify(token, JWT_SECRET);
-    return payload as any;
-  } catch (err) {
-    return null;
-  }
-}
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = await getUserFromCookie();
-    if (!user) {
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized. Please log in.' }, { status: 401 });
     }
 
@@ -32,16 +19,29 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     // Insert the donation record
-    await query(
-      `INSERT INTO project_donations (project_id, user_id, amount, is_anonymous, payment_status) VALUES (?, ?, ?, ?, 'COMPLETED')`,
-      [projectId, user.id, amount, is_anonymous ? 1 : 0]
-    );
+    const { error: insertError } = await supabase.from('project_donations').insert({
+      project_id: projectId,
+      user_id: user.id,
+      amount,
+      is_anonymous: is_anonymous ? true : false,
+      payment_status: 'COMPLETED'
+    });
+
+    if (insertError) throw insertError;
 
     // Update the total raised amount on the project
-    await query(
-      `UPDATE projects SET raised_amount = raised_amount + ? WHERE id = ?`,
-      [amount, projectId]
-    );
+    const { data: project } = await supabase
+      .from('projects')
+      .select('raised_amount')
+      .eq('id', projectId)
+      .single();
+
+    if (project) {
+      await supabase
+        .from('projects')
+        .update({ raised_amount: (project.raised_amount || 0) + amount })
+        .eq('id', projectId);
+    }
 
     return NextResponse.json({ message: 'Donation successful! Thank you for giving back.' });
   } catch (error: any) {

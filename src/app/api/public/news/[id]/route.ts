@@ -1,22 +1,33 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const supabase = createClient(await cookies());
 
-    const articles: any = await query(`
-      SELECT n.id, n.title, n.content, n.image_url, n.category, n.created_at, u.first_name, u.last_name 
-      FROM news_articles n 
-      JOIN users u ON n.author_id = u.id 
-      WHERE n.id = ? AND n.status = 'PUBLISHED'
-    `, [id]);
+    const { data: articles, error } = await supabase
+      .from('news_articles')
+      .select(`id, title, content, image_url, category, created_at, users!inner(first_name, last_name)`)
+      .eq('id', id)
+      .eq('status', 'PUBLISHED');
 
-    if (articles.length === 0) {
+    if (error) throw error;
+
+    if (!articles || articles.length === 0) {
       return NextResponse.json({ error: 'Article not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ article: articles[0] });
+    const user = Array.isArray(articles[0].users) ? articles[0].users[0] : articles[0].users;
+    const article = {
+      ...articles[0],
+      first_name: (user as any)?.first_name,
+      last_name: (user as any)?.last_name,
+      users: undefined
+    };
+
+    return NextResponse.json({ article });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

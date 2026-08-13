@@ -1,36 +1,41 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 // Public route to fetch active businesses (with optional filtering)
 export async function GET(request: Request) {
   try {
+    const supabase = createClient(await cookies());
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');
     const location = searchParams.get('location');
 
-    let sql = `
-      SELECT b.*, u.first_name, u.last_name 
-      FROM businesses b
-      JOIN users u ON b.owner_id = u.id
-      WHERE b.status = 'ACTIVE'
-    `;
-    const params: any[] = [];
+    let dbQuery = supabase
+      .from('businesses')
+      .select(`
+        *,
+        users (first_name, last_name)
+      `)
+      .eq('status', 'ACTIVE')
+      .order('is_featured', { ascending: false })
+      .order('created_at', { ascending: false });
 
     if (category) {
-      sql += ` AND b.category = ?`;
-      params.push(category);
+      dbQuery = dbQuery.eq('category', category);
     }
     if (location) {
-      sql += ` AND b.location LIKE ?`;
-      params.push(`%${location}%`);
+      dbQuery = dbQuery.ilike('location', `%${location}%`);
     }
-
-    // Sort by featured first, then newest
-    sql += ` ORDER BY b.is_featured DESC, b.created_at DESC`;
     
-    const businesses = await query(sql, params);
+    const { data: businessesData, error } = await dbQuery;
+    
+    if (error) throw error;
+    
+    const businesses = businessesData?.map((b: any) => ({
+      ...b,
+      first_name: b.users?.first_name,
+      last_name: b.users?.last_name
+    })) || [];
     
     // Optionally check if user is logged in to return full discount details vs generic badge
     // But for simplicity, we'll let frontend handle hiding the exact discount code if we add one.
@@ -45,11 +50,8 @@ export async function GET(request: Request) {
 // Protected route to list a new business
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    
-    const user: any = await verifyToken(token);
+    const supabase = createClient(await cookies());
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
@@ -69,23 +71,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const insertResult: any = await query(
-      `INSERT INTO businesses (owner_id, business_name, category, description, location, website_url, whatsapp_number, offers_alumni_discount, discount_details) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        user.id, 
-        business_name, 
-        category, 
-        description, 
-        location, 
-        website_url || null, 
-        whatsapp_number, 
-        offers_alumni_discount ? 1 : 0, 
-        discount_details || null
-      ]
-    );
+    const { data, error } = await supabase
+      .from('businesses')
+      .insert({
+        owner_id: user.id,
+        business_name,
+        category,
+        description,
+        location,
+        website_url: website_url || null,
+        whatsapp_number,
+        offers_alumni_discount: offers_alumni_discount ? 1 : 0,
+        discount_details: discount_details || null
+      })
+      .select('id')
+      .single();
+      
+    if (error) throw error;
 
-    return NextResponse.json({ message: 'Business submitted for review', id: insertResult.insertId }, { status: 201 });
+    return NextResponse.json({ message: 'Business submitted for review', id: data.id }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

@@ -1,32 +1,43 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    
-    const user: any = await verifyToken(token);
+    const supabase = createClient(await cookies());
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const params = await context.params;
     const jobId = params.id;
 
-    const jobs: any = await query(`
-      SELECT j.*, u.first_name, u.last_name, u.email, u.phone 
-      FROM jobs j
-      JOIN users u ON j.posted_by_id = u.id
-      WHERE j.id = ?
-    `, [jobId]);
+    const { data: jobData, error } = await supabase
+      .from('jobs')
+      .select(`
+        *,
+        users (
+          first_name,
+          last_name,
+          email,
+          phone
+        )
+      `)
+      .eq('id', jobId)
+      .single();
 
-    if (jobs.length === 0) {
+    if (error || !jobData) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ job: jobs[0] });
+    const job = {
+      ...jobData,
+      first_name: (jobData as any).users?.first_name,
+      last_name: (jobData as any).users?.last_name,
+      email: (jobData as any).users?.email,
+      phone: (jobData as any).users?.phone
+    };
+
+    return NextResponse.json({ job });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

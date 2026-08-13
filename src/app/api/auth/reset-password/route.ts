@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
@@ -14,13 +15,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
     }
 
-    // Verify token
-    const resets: any = await query(
-      `SELECT * FROM password_resets WHERE token = ? AND used = 0 AND expires_at > NOW()`,
-      [token]
-    );
+    const supabase = createClient(await cookies());
 
-    if (resets.length === 0) {
+    // Verify token
+    const { data: resets, error: resetError } = await supabase
+      .from('password_resets')
+      .select('*')
+      .eq('token', token)
+      .eq('used', 0)
+      .gt('expires_at', new Date().toISOString());
+
+    if (resetError || !resets || resets.length === 0) {
       return NextResponse.json({ error: 'Invalid or expired reset token. Please request a new one.' }, { status: 400 });
     }
 
@@ -31,10 +36,20 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
     // Update user's password
-    await query(`UPDATE users SET password = ? WHERE id = ?`, [hashedPassword, resetRecord.user_id]);
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ password: hashedPassword })
+      .eq('id', resetRecord.user_id);
+      
+    if (updateError) throw updateError;
 
     // Mark token as used
-    await query(`UPDATE password_resets SET used = 1 WHERE id = ?`, [resetRecord.id]);
+    const { error: markUsedError } = await supabase
+      .from('password_resets')
+      .update({ used: 1 })
+      .eq('id', resetRecord.id);
+      
+    if (markUsedError) throw markUsedError;
 
     return NextResponse.json({ message: 'Password has been successfully reset. You may now log in.' });
   } catch (error: any) {

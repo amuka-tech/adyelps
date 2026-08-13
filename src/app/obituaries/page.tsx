@@ -2,7 +2,8 @@ import React from 'react';
 import { Card, CardContent } from '@/components/Card';
 import { Button } from '@/components/Button';
 import Link from 'next/link';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
 export const metadata = {
   title: 'Obituaries | LTC Alumni',
@@ -12,7 +13,10 @@ export const metadata = {
 export default async function ObituariesPage() {
   let obituaries: any[] = [];
   try {
-    obituaries = await query('SELECT * FROM obituaries ORDER BY created_at DESC') as any[];
+    const supabase = createClient(await cookies());
+    const { data, error } = await supabase.from('obituaries').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    obituaries = data || [];
   } catch (error) {
     console.error("Failed to load obituaries", error);
   }

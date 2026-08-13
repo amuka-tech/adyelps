@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    
-    const user: any = await verifyToken(token);
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const params = await context.params;
     const jobId = params.id;
@@ -19,8 +18,12 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const { message } = body;
 
     // Check if job exists and has a poster
-    const jobs: any = await query(`SELECT posted_by_id, offers_referral FROM jobs WHERE id = ?`, [jobId]);
-    if (jobs.length === 0) {
+    const { data: jobs, error: jobError } = await supabase
+      .from('jobs')
+      .select('posted_by_id, offers_referral')
+      .eq('id', jobId);
+
+    if (jobError || !jobs || jobs.length === 0) {
       return NextResponse.json({ error: 'Job not found' }, { status: 404 });
     }
 
@@ -34,10 +37,18 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
 
     // Insert referral request
-    await query(
-      `INSERT INTO referral_requests (job_id, requester_id, poster_id, message) VALUES (?, ?, ?, ?)`,
-      [jobId, user.id, job.posted_by_id, message || null]
-    );
+    const { error: insertError } = await supabase
+      .from('referral_requests')
+      .insert({
+        job_id: jobId,
+        requester_id: user.id,
+        poster_id: job.posted_by_id,
+        message: message || null
+      });
+
+    if (insertError) {
+      throw insertError;
+    }
 
     // Simulate Notification Logging
     console.log(`[SYSTEM NOTIFICATION]: User ${user.id} requested a referral from User ${job.posted_by_id} for Job ID ${jobId}`);

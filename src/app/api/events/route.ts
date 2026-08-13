@@ -1,17 +1,24 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    const events = await query(`
-      SELECT e.*, u.first_name as organizer_first, u.last_name as organizer_last
-      FROM events e
-      JOIN users u ON e.created_by_id = u.id
-      ORDER BY e.event_date ASC
-    `);
+    const supabase = createClient(await cookies());
+    const { data: events, error } = await supabase
+      .from('events')
+      .select('*, organizer:users(first_name, last_name)')
+      .order('event_date', { ascending: true });
 
-    // Only returning the events. For ticket tiers, fetch in the specific event details
-    return NextResponse.json({ events });
+    if (error) throw error;
+
+    const formattedEvents = events?.map((e: any) => ({
+      ...e,
+      organizer_first: e.organizer?.first_name,
+      organizer_last: e.organizer?.last_name
+    })) || [];
+
+    return NextResponse.json({ events: formattedEvents });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -19,15 +26,17 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { cookies } = await import('next/headers');
-    const { verifyToken } = await import('@/lib/auth');
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     
-    const user: any = await verifyToken(token);
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.role !== 'PRO')) {
+    const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
+    const role = userData?.role;
+    
+    if (!role || (role !== 'ADMIN' && role !== 'SUPER_ADMIN' && role !== 'PRO')) {
       return NextResponse.json({ error: 'Forbidden: Requires PRO or Admin role' }, { status: 403 });
     }
 
@@ -38,13 +47,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const insertResult: any = await query(
-      `INSERT INTO events (title, description, event_date, location, image_url, created_by_id)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [title, description, event_date, location, image_url || null, user.id]
-    );
+    const { data: insertResult, error } = await supabase
+      .from('events')
+      .insert({
+        title,
+        description,
+        event_date,
+        location,
+        image_url: image_url || null,
+        created_by_id: user.id
+      })
+      .select('id')
+      .single();
 
-    return NextResponse.json({ message: 'Event created successfully', id: insertResult.insertId }, { status: 201 });
+    if (error) throw error;
+
+    return NextResponse.json({ message: 'Event created successfully', id: insertResult.id }, { status: 201 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

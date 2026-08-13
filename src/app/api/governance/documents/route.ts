@@ -1,24 +1,28 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    
-    // Require login to view documents securely
-    const user: any = await verifyToken(token);
+    const supabase = createClient(await cookies());
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const documents = await query(`
-      SELECT d.*, u.first_name, u.last_name 
-      FROM documents d
-      JOIN users u ON d.uploaded_by_id = u.id
-      ORDER BY d.created_at DESC
-    `);
+    const { data: documentsData, error } = await supabase
+      .from('documents')
+      .select(`
+        *,
+        users (first_name, last_name)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const documents = documentsData?.map((d: any) => ({
+      ...d,
+      first_name: d.users?.first_name,
+      last_name: d.users?.last_name
+    })) || [];
 
     return NextResponse.json({ documents });
   } catch (error: any) {

@@ -19,7 +19,7 @@ Under our slogan **"Aged to Perfection since 2016"**, this application serves as
 * **Framework:** [Next.js](https://nextjs.org/) (App Router, Version 16+)
 * **UI/Styling:** React 19, [Tailwind CSS v4](https://tailwindcss.com/)
 * **Database:** MySQL (interfaced via `mysql2`)
-* **Security/Auth:** JWT (`jose`), Password Hashing (`bcryptjs`)
+* **Security/Auth:** Supabase Auth
 * **Utilities:** `qrcode.react`, `html5-qrcode`
 
 ## 🚀 Getting Started
@@ -45,8 +45,9 @@ DB_USER=root
 DB_PASS=
 DB_NAME=adyeldb
 
-# Security
-JWT_SECRET=your_super_secret_jwt_key_here
+# Supabase Auth
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ### 3. Database Initialization

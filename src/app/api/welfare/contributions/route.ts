@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 // Fetch all contributions for a specific obituary, or all pending (Admin)
@@ -10,26 +9,31 @@ export async function GET(request: Request) {
     const status = searchParams.get('status');
     const obituaryId = searchParams.get('obituary_id');
     
-    let sql = `
-      SELECT c.*, u.first_name, u.last_name, u.email 
-      FROM contributions c
-      JOIN users u ON c.user_id = u.id
-      WHERE 1=1
-    `;
-    const params: any[] = [];
+    const supabase = createClient(await cookies());
+    
+    let query = supabase
+      .from('contributions')
+      .select('*, users!inner(first_name, last_name, email)')
+      .order('created_at', { ascending: false });
 
     if (status) {
-      sql += ` AND c.status = ?`;
-      params.push(status);
+      query = query.eq('status', status);
     }
     if (obituaryId) {
-      sql += ` AND c.obituary_id = ?`;
-      params.push(obituaryId);
+      query = query.eq('obituary_id', obituaryId);
     }
-
-    sql += ` ORDER BY c.created_at DESC`;
     
-    const contributions = await query(sql, params);
+    const { data: contributionsData, error } = await query;
+    if (error) throw error;
+    
+    const contributions = contributionsData?.map((c: any) => ({
+      ...c,
+      first_name: c.users.first_name,
+      last_name: c.users.last_name,
+      email: c.users.email,
+      users: undefined
+    }));
+
     return NextResponse.json({ contributions });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -39,12 +43,10 @@ export async function GET(request: Request) {
 // Log a new contribution (Members)
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
     
-    const user: any = await verifyToken(token);
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
     const { obituary_id, amount_gross, payment_method } = body;
@@ -53,10 +55,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    await query(
-      `INSERT INTO contributions (obituary_id, user_id, amount_gross, payment_method) VALUES (?, ?, ?, ?)`,
-      [obituary_id, user.id, amount_gross, payment_method]
-    );
+    const { error } = await supabase
+      .from('contributions')
+      .insert({
+        obituary_id,
+        user_id: user.id,
+        amount_gross,
+        payment_method
+      });
+
+    if (error) throw error;
 
     return NextResponse.json({ message: 'Contribution logged successfully and is pending verification.' }, { status: 201 });
   } catch (error: any) {

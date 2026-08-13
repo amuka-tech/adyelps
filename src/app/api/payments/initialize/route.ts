@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 import crypto from 'crypto';
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    
-    const user: any = await verifyToken(token);
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const body = await request.json();
     const { amount, type, metadata } = body;
@@ -22,10 +21,20 @@ export async function POST(request: Request) {
     const reference = crypto.randomBytes(16).toString('hex');
 
     // Store pending transaction
-    await query(
-      `INSERT INTO transactions (user_id, reference, amount, type, metadata, status) VALUES (?, ?, ?, ?, ?, 'PENDING')`,
-      [user.id, reference, amount, type, JSON.stringify(metadata || {})]
-    );
+    const { error: insertError } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: user.id,
+        reference,
+        amount,
+        type,
+        metadata: JSON.stringify(metadata || {}),
+        status: 'PENDING'
+      });
+
+    if (insertError) {
+      throw insertError;
+    }
 
     const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';

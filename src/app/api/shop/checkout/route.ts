@@ -1,16 +1,13 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    const user: any = await verifyToken(token);
-    if (!user) {
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -20,28 +17,48 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
     }
 
-    // 1. Calculate total and verify stock (in a real app we'd query DB for current prices/stock)
     let totalAmount = 0;
     for (const item of items) {
       totalAmount += item.price * item.quantity;
-      // Subtract stock
-      await query(`UPDATE shop_products SET stock_quantity = GREATEST(0, stock_quantity - ?) WHERE id = ?`, [item.quantity, item.product_id]);
+      
+      const { data: product } = await supabase
+        .from('shop_products')
+        .select('stock_quantity')
+        .eq('id', item.product_id)
+        .single();
+        
+      if (product) {
+        const newStock = Math.max(0, product.stock_quantity - item.quantity);
+        await supabase
+          .from('shop_products')
+          .update({ stock_quantity: newStock })
+          .eq('id', item.product_id);
+      }
     }
 
-    // 2. Create Order
-    const orderResult: any = await query(`
-      INSERT INTO shop_orders (user_id, total_amount, status, shipping_address)
-      VALUES (?, ?, 'PENDING', ?)
-    `, [user.id, totalAmount, shipping_address || 'Pickup at School']);
+    const { data: orderResult, error: orderError } = await supabase
+      .from('shop_orders')
+      .insert({
+        user_id: user.id,
+        total_amount: totalAmount,
+        status: 'PENDING',
+        shipping_address: shipping_address || 'Pickup at School'
+      })
+      .select('id')
+      .single();
 
-    const orderId = orderResult.insertId;
+    if (orderError) throw orderError;
+    const orderId = orderResult.id;
 
-    // 3. Create Order Items
     for (const item of items) {
-      await query(`
-        INSERT INTO shop_order_items (order_id, product_id, quantity, price_at_purchase)
-        VALUES (?, ?, ?, ?)
-      `, [orderId, item.product_id, item.quantity, item.price]);
+      await supabase
+        .from('shop_order_items')
+        .insert({
+          order_id: orderId,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          price_at_purchase: item.price
+        });
     }
 
     return NextResponse.json({ message: 'Order placed successfully', orderId });

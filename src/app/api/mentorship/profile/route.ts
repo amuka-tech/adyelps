@@ -1,20 +1,24 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    const currentUser: any = await verifyToken(token);
-    if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    const profiles: any = await query('SELECT * FROM mentor_profiles WHERE user_id = ?', [currentUser.id]);
+    const { data: profiles, error: profilesError } = await supabase
+      .from('mentor_profiles')
+      .select('*')
+      .eq('user_id', user.id);
     
-    if (profiles.length === 0) {
+    if (profilesError) throw profilesError;
+    
+    if (!profiles || profiles.length === 0) {
       return NextResponse.json({ profile: null });
     }
 
@@ -31,31 +35,49 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    const currentUser: any = await verifyToken(token);
-    if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const body = await request.json();
     const { industry, bio, skills, is_accepting_mentees, max_mentees } = body;
 
-    const existing: any = await query('SELECT id FROM mentor_profiles WHERE user_id = ?', [currentUser.id]);
+    const { data: existing } = await supabase
+      .from('mentor_profiles')
+      .select('id')
+      .eq('user_id', user.id);
 
-    if (existing.length > 0) {
+    if (existing && existing.length > 0) {
       // Update
-      await query(`
-        UPDATE mentor_profiles 
-        SET industry = ?, bio = ?, skills = ?, is_accepting_mentees = ?, max_mentees = ?
-        WHERE user_id = ?
-      `, [industry, bio, JSON.stringify(skills), is_accepting_mentees ? 1 : 0, max_mentees, currentUser.id]);
+      const { error: updateError } = await supabase
+        .from('mentor_profiles')
+        .update({
+          industry,
+          bio,
+          skills: JSON.stringify(skills),
+          is_accepting_mentees: is_accepting_mentees ? true : false,
+          max_mentees
+        })
+        .eq('user_id', user.id);
+      
+      if (updateError) throw updateError;
     } else {
       // Insert
-      await query(`
-        INSERT INTO mentor_profiles (user_id, industry, bio, skills, is_accepting_mentees, max_mentees)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `, [currentUser.id, industry, bio, JSON.stringify(skills), is_accepting_mentees ? 1 : 0, max_mentees]);
+      const { error: insertError } = await supabase
+        .from('mentor_profiles')
+        .insert([{
+          user_id: user.id,
+          industry,
+          bio,
+          skills: JSON.stringify(skills),
+          is_accepting_mentees: is_accepting_mentees ? true : false,
+          max_mentees
+        }]);
+      
+      if (insertError) throw insertError;
     }
 
     return NextResponse.json({ success: true });

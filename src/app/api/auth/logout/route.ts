@@ -1,27 +1,21 @@
 import { NextResponse } from 'next/server';
-import { logAction } from '@/lib/audit';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function POST() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('auth_token')?.value;
-  if (token) {
-    const user: any = await verifyToken(token);
-    if (user) {
-      await logAction(user.id, 'USER_LOGOUT', 'User logged out successfully');
+  try {
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
+    return NextResponse.json({ message: 'Logged out successfully' }, { status: 200 });
+  } catch (error: any) {
+    console.error('Logout error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-
-  const response = NextResponse.json({ message: 'Logged out successfully' });
-  
-  response.cookies.set({
-    name: 'auth_token',
-    value: '',
-    httpOnly: true,
-    expires: new Date(0),
-    path: '/',
-  });
-
-  return response;
 }

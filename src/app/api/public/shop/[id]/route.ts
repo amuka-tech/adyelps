@@ -1,17 +1,21 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const supabase = createClient(await cookies());
 
-    const products: any = await query(`
-      SELECT id, name, description, price, stock_quantity, image_url 
-      FROM shop_products 
-      WHERE id = ? AND status = 'ACTIVE'
-    `, [id]);
+    const { data: products, error } = await supabase
+      .from('shop_products')
+      .select('id, name, description, price, stock_quantity, image_url')
+      .eq('id', id)
+      .eq('status', 'ACTIVE');
 
-    if (products.length === 0) {
+    if (error) throw error;
+
+    if (!products || products.length === 0) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 

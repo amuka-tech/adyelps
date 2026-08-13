@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    
-    const user: any = await verifyToken(token);
-    if (!user || user.role !== 'SUPER_ADMIN') {
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (!userData || userData.role !== 'SUPER_ADMIN') {
       return NextResponse.json({ error: 'Unauthorized. Super Admin access required.' }, { status: 403 });
     }
 
@@ -22,7 +21,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
-    await query(`UPDATE shop_orders SET status = ? WHERE id = ?`, [status, id]);
+    const { error } = await supabase
+      .from('shop_orders')
+      .update({ status })
+      .eq('id', id);
+
+    if (error) throw error;
 
     return NextResponse.json({ message: `Order status updated to ${status}` });
   } catch (error: any) {

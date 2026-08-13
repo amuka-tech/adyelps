@@ -1,40 +1,34 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    
-    const user: any = await verifyToken(token);
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
     const classYear = searchParams.get('class_year');
     const profession = searchParams.get('profession');
     
-    let sql = `SELECT id, first_name, last_name, class_year, profession, email, phone, hide_contact_info FROM users WHERE 1=1`;
-    let params: any[] = [];
+    let query = supabase.from('users').select('id, first_name, last_name, class_year, profession, email, phone, hide_contact_info');
 
     if (classYear) {
-      sql += ` AND class_year = ?`;
-      params.push(classYear);
+      query = query.eq('class_year', classYear);
     }
     
     if (profession) {
-      sql += ` AND profession LIKE ?`;
-      params.push(`%${profession}%`);
+      query = query.ilike('profession', `%${profession}%`);
     }
 
-    sql += ` ORDER BY class_year DESC, first_name ASC`;
+    query = query.order('class_year', { ascending: false }).order('first_name', { ascending: true });
 
-    const members: any = await query(sql, params);
+    const { data: members, error: queryError } = await query;
+    if (queryError) throw queryError;
 
     // Apply privacy masking
-    const safeMembers = members.map((member: any) => {
+    const safeMembers = (members || []).map((member: any) => {
       if (member.hide_contact_info) {
         return {
           id: member.id,

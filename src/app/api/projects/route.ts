@@ -1,30 +1,25 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import * as jose from 'jose';
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_for_development_only_please_change');
-
-async function getUserFromCookie() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('auth_token')?.value;
-  if (!token) return null;
-  try {
-    const { payload } = await jose.jwtVerify(token, JWT_SECRET);
-    return payload as any;
-  } catch (err) {
-    return null;
-  }
-}
 
 export async function GET(request: Request) {
   try {
-    const projects = await query(`
-      SELECT p.*, u.first_name, u.last_name 
-      FROM projects p
-      JOIN users u ON p.created_by_id = u.id
-      ORDER BY p.created_at DESC
-    `);
+    const supabase = createClient(await cookies());
+    const { data: projectsData, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        users (first_name, last_name)
+      `)
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
+    
+    const projects = projectsData?.map((p: any) => ({
+      ...p,
+      first_name: p.users?.first_name,
+      last_name: p.users?.last_name
+    })) || [];
     
     return NextResponse.json({ projects });
   } catch (error: any) {
@@ -35,8 +30,18 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const user = await getUserFromCookie();
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    const supabase = createClient(await cookies());
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // You would typically fetch user role from your database if using custom roles
+    // For this migration, we assume role is part of user metadata or we fetch it from users table
+    let userRole = null;
+    if (user) {
+      const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
+      userRole = userData?.role;
+    }
+
+    if (!user || (userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN')) {
       return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 401 });
     }
 
@@ -46,13 +51,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const insertResult: any = await query(
-      `INSERT INTO projects (title, description, goal_amount, image_url, deadline, created_by_id) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [title, description, goal_amount, image_url || null, deadline || null, user.id]
-    );
+    const { data, error } = await supabase
+      .from('projects')
+      .insert({
+        title,
+        description,
+        goal_amount,
+        image_url: image_url || null,
+        deadline: deadline || null,
+        created_by_id: user.id
+      })
+      .select('id')
+      .single();
 
-    return NextResponse.json({ message: 'Project created successfully', projectId: insertResult.insertId });
+    if (error) throw error;
+
+    return NextResponse.json({ message: 'Project created successfully', projectId: data.id });
   } catch (error: any) {
     console.error("Create project error:", error);
     return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });

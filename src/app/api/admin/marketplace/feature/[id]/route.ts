@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
-    const user: any = await verifyToken(token);
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (!userData || (userData.role !== 'ADMIN' && userData.role !== 'SUPER_ADMIN')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -20,7 +19,12 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const body = await request.json();
     const { is_featured } = body;
 
-    await query(`UPDATE businesses SET is_featured = ? WHERE id = ?`, [is_featured ? 1 : 0, businessId]);
+    const { error: updateError } = await supabase
+      .from('businesses')
+      .update({ is_featured: is_featured ? 1 : 0 })
+      .eq('id', businessId);
+      
+    if (updateError) throw updateError;
 
     return NextResponse.json({ message: `Business featured status updated` }, { status: 200 });
   } catch (error: any) {

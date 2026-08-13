@@ -1,33 +1,53 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
+    const supabase = createClient(await cookies());
+
     // Fetch polls and their options
-    const pollsResult: any = await query(`
-      SELECT p.*, u.first_name, u.last_name 
-      FROM polls p
-      JOIN users u ON p.created_by_id = u.id
-      ORDER BY p.start_date DESC
-    `);
+    const { data: pollsResult, error: pollsError } = await supabase
+      .from('polls')
+      .select(`
+        *,
+        users (first_name, last_name)
+      `)
+      .order('start_date', { ascending: false });
 
-    // Fetch options and tally votes
-    for (let poll of pollsResult) {
-      const optionsResult: any = await query(`
-        SELECT po.id, po.option_text, COUNT(pv.id) as vote_count
-        FROM poll_options po
-        LEFT JOIN poll_votes pv ON po.id = pv.poll_option_id
-        WHERE po.poll_id = ?
-        GROUP BY po.id
-      `, [poll.id]);
-      
-      poll.options = optionsResult;
+    if (pollsError) throw pollsError;
 
-      // Calculate total votes
-      poll.total_votes = optionsResult.reduce((sum: number, opt: any) => sum + parseInt(opt.vote_count), 0);
+    const formattedPolls = [];
+    
+    for (let poll of (pollsResult || [])) {
+      // Fetch options and tally votes
+      const { data: optionsResult, error: optionsError } = await supabase
+        .from('poll_options')
+        .select(`
+          id,
+          option_text,
+          poll_votes (id)
+        `)
+        .eq('poll_id', poll.id);
+
+      if (optionsError) throw optionsError;
+
+      const options = (optionsResult || []).map((opt: any) => ({
+        id: opt.id,
+        option_text: opt.option_text,
+        vote_count: opt.poll_votes ? opt.poll_votes.length : 0
+      }));
+
+      formattedPolls.push({
+        ...poll,
+        first_name: (poll as any).users?.first_name,
+        last_name: (poll as any).users?.last_name,
+        options,
+        total_votes: options.reduce((sum: number, opt: any) => sum + opt.vote_count, 0)
+      });
     }
 
-    return NextResponse.json({ polls: pollsResult });
+    return NextResponse.json({ polls: formattedPolls });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

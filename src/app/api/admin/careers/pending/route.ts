@@ -1,28 +1,36 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
-    const user: any = await verifyToken(token);
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (!userData || (userData.role !== 'ADMIN' && userData.role !== 'SUPER_ADMIN')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const jobs = await query(`
-      SELECT j.*, u.first_name, u.last_name, u.email 
-      FROM jobs j
-      JOIN users u ON j.posted_by_id = u.id
-      WHERE j.status = 'PENDING'
-      ORDER BY j.created_at ASC
-    `);
+    const { data: jobs, error } = await supabase
+      .from('jobs')
+      .select('*, users!inner(first_name, last_name, email)')
+      .eq('status', 'PENDING')
+      .order('created_at', { ascending: true });
+      
+    if (error) throw error;
 
-    return NextResponse.json({ jobs });
+    // Flatten the user data if needed to match previous response
+    const formattedJobs = jobs.map((job: any) => ({
+      ...job,
+      first_name: job.users?.first_name,
+      last_name: job.users?.last_name,
+      email: job.users?.email,
+      users: undefined
+    }));
+
+    return NextResponse.json({ jobs: formattedJobs });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

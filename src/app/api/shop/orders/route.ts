@@ -1,35 +1,42 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    const user: any = await verifyToken(token);
-    if (!user) {
+    if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get orders
-    const orders: any[] = await query(`
-      SELECT * FROM shop_orders 
-      WHERE user_id = ? 
-      ORDER BY created_at DESC
-    `, [user.id]) as any[];
+    const { data: ordersResult, error: ordersError } = await supabase
+      .from('shop_orders')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
 
-    // Get items for these orders
+    if (ordersError) throw ordersError;
+    
+    const orders = ordersResult || [];
+
     for (const order of orders) {
-      const items = await query(`
-        SELECT i.quantity, i.price_at_purchase, p.name, p.image_url
-        FROM shop_order_items i
-        JOIN shop_products p ON i.product_id = p.id
-        WHERE i.order_id = ?
-      `, [order.id]);
-      order.items = items;
+      const { data: items, error: itemsError } = await supabase
+        .from('shop_order_items')
+        .select('quantity, price_at_purchase, product:shop_products(name, image_url)')
+        .eq('order_id', order.id);
+        
+      if (!itemsError && items) {
+        order.items = items.map((i: any) => ({
+          quantity: i.quantity,
+          price_at_purchase: i.price_at_purchase,
+          name: i.product?.name,
+          image_url: i.product?.image_url
+        }));
+      } else {
+        order.items = [];
+      }
     }
 
     return NextResponse.json({ orders });

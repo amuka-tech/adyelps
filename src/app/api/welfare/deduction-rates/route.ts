@@ -1,11 +1,17 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    const rates = await query(`SELECT * FROM deduction_rates ORDER BY name ASC`);
+    const supabase = createClient(await cookies());
+    const { data: rates, error } = await supabase
+      .from('deduction_rates')
+      .select('*')
+      .order('name', { ascending: true });
+      
+    if (error) throw error;
+    
     return NextResponse.json({ rates });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -14,12 +20,18 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
     
-    const user: any = await verifyToken(token);
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (userError || !userData || (userData.role !== 'ADMIN' && userData.role !== 'SUPER_ADMIN')) {
       return NextResponse.json({ error: 'Forbidden: Requires Admin role' }, { status: 403 });
     }
 
@@ -30,10 +42,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    await query(
-      `INSERT INTO deduction_rates (name, rate_type, amount) VALUES (?, ?, ?)`,
-      [name, rate_type, amount]
-    );
+    const { error } = await supabase
+      .from('deduction_rates')
+      .insert({ name, rate_type, amount });
+
+    if (error) throw error;
 
     return NextResponse.json({ message: 'Deduction rate added' }, { status: 201 });
   } catch (error: any) {

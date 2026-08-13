@@ -1,17 +1,16 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const params = await context.params;
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    const user: any = await verifyToken(token);
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     
     if (!user.id) {
       return NextResponse.json({ error: 'System Admin account cannot post condolences.' }, { status: 403 });
@@ -24,10 +23,17 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       return NextResponse.json({ error: 'Message is required' }, { status: 400 });
     }
 
-    await query(
-      `INSERT INTO condolences (obituary_id, user_id, message) VALUES (?, ?, ?)`,
-      [params.id, user.id, message]
-    );
+    const { error: insertError } = await supabase
+      .from('condolences')
+      .insert([
+        {
+          obituary_id: params.id,
+          user_id: user.id,
+          message
+        }
+      ]);
+
+    if (insertError) throw insertError;
 
     return NextResponse.json({ message: 'Condolence posted' }, { status: 201 });
   } catch (error: any) {

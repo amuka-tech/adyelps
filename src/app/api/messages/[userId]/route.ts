@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 // GET chat history with a specific user
@@ -9,27 +8,37 @@ export async function GET(request: Request, context: any) {
     const { params } = context;
     const { userId } = await params; // Next 15 requirement
     
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    const user: any = await verifyToken(token);
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    const contactId = parseInt(userId);
+    const contactId = userId; // In Supabase, id is usually UUID string, but here might be int or string. We use string as it handles UUID or numbers usually
 
     // Fetch conversation
-    const sql = `
-      SELECT id, sender_id, receiver_id, content, is_read, created_at 
-      FROM messages 
-      WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
-      ORDER BY created_at ASC
-    `;
-    const messages = await query(sql, [user.id, contactId, contactId, user.id]);
+    const { data: rawMessages, error: msgError } = await supabase
+      .from('messages')
+      .select('id, sender_id, receiver_id, content, is_read, created_at')
+      .in('sender_id', [user.id, contactId])
+      .in('receiver_id', [user.id, contactId])
+      .order('created_at', { ascending: true });
+
+    if (msgError) throw msgError;
+
+    // Filter to ensure it's strictly between these two
+    const messages = rawMessages?.filter((m: any) => 
+      (m.sender_id === user.id && m.receiver_id === contactId) ||
+      (m.sender_id === contactId && m.receiver_id === user.id)
+    ) || [];
 
     // Also fetch the contact's basic info
-    const contactRes: any = await query(`SELECT id, first_name, last_name, profession FROM users WHERE id = ?`, [contactId]);
-    const contactInfo = contactRes.length > 0 ? contactRes[0] : null;
+    const { data: contactInfo } = await supabase
+      .from('users')
+      .select('id, first_name, last_name, profession')
+      .eq('id', contactId)
+      .single();
 
     return NextResponse.json({ messages, contact: contactInfo });
   } catch (error: any) {
@@ -44,20 +53,24 @@ export async function PATCH(request: Request, context: any) {
     const { params } = context;
     const { userId } = await params;
     
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    const user: any = await verifyToken(token);
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    const contactId = parseInt(userId);
+    const contactId = userId;
 
     // Update all unread messages sent BY the contact TO the logged-in user
-    await query(
-      `UPDATE messages SET is_read = 1 WHERE sender_id = ? AND receiver_id = ? AND is_read = 0`,
-      [contactId, user.id]
-    );
+    const { error: updateError } = await supabase
+      .from('messages')
+      .update({ is_read: true })
+      .eq('sender_id', contactId)
+      .eq('receiver_id', user.id)
+      .eq('is_read', false);
+
+    if (updateError) throw updateError;
 
     return NextResponse.json({ message: 'Messages marked as read' });
   } catch (error: any) {

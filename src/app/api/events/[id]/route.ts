@@ -1,27 +1,35 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const params = await context.params;
     const eventId = params.id;
+    const supabase = createClient(await cookies());
 
-    const eventResult: any = await query(`
-      SELECT e.*, u.first_name as organizer_first, u.last_name as organizer_last
-      FROM events e
-      JOIN users u ON e.created_by_id = u.id
-      WHERE e.id = ?
-    `, [eventId]);
+    const { data: eventResult, error: eventError } = await supabase
+      .from('events')
+      .select('*, organizer:users(first_name, last_name)')
+      .eq('id', eventId)
+      .single();
 
-    if (!eventResult || eventResult.length === 0) {
+    if (eventError || !eventResult) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
-    const event = eventResult[0];
+    const event = {
+      ...eventResult,
+      organizer_first: eventResult.organizer?.first_name,
+      organizer_last: eventResult.organizer?.last_name
+    };
 
-    const tiers = await query(`
-      SELECT * FROM event_ticket_tiers WHERE event_id = ?
-    `, [eventId]);
+    const { data: tiers, error: tiersError } = await supabase
+      .from('event_ticket_tiers')
+      .select('*')
+      .eq('event_id', eventId);
+
+    if (tiersError) throw tiersError;
 
     return NextResponse.json({ event, tiers });
   } catch (error: any) {

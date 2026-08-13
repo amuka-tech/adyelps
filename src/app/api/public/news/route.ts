@@ -1,15 +1,24 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    const articles = await query(
-      `SELECT n.id, n.title, n.content, n.image_url, n.category, n.created_at, u.first_name, u.last_name 
-       FROM news_articles n 
-       JOIN users u ON n.author_id = u.id 
-       WHERE n.status = 'PUBLISHED' 
-       ORDER BY n.created_at DESC`
-    );
+    const supabase = createClient(await cookies());
+    
+    const { data: articlesResult, error } = await supabase
+      .from('news_articles')
+      .select('id, title, content, image_url, category, created_at, author:users(first_name, last_name)')
+      .eq('status', 'PUBLISHED')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const articles = articlesResult.map((a: any) => ({
+      ...a,
+      first_name: a.author?.first_name,
+      last_name: a.author?.last_name
+    }));
 
     return NextResponse.json({ articles });
   } catch (error: any) {

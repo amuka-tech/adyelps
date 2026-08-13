@@ -1,30 +1,48 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const params = await context.params;
     const obituaryId = params.id;
+    const supabase = createClient(await cookies());
 
     // Fetch the obituary details (mainly for target amount and status)
-    const obituaries: any = await query(`SELECT * FROM obituaries WHERE id = ?`, [obituaryId]);
-    if (obituaries.length === 0) {
+    const { data: obituaries, error: obitError } = await supabase
+      .from('obituaries')
+      .select('*')
+      .eq('id', obituaryId);
+
+    if (obitError || !obituaries || obituaries.length === 0) {
       return NextResponse.json({ error: 'Obituary not found' }, { status: 404 });
     }
     const obituary = obituaries[0];
 
     // Fetch ONLY verified contributions for this obituary, with user details
-    const contributions: any = await query(
-      `SELECT c.id, c.amount_gross, c.payment_method, c.created_at, u.first_name, u.last_name 
-       FROM contributions c
-       JOIN users u ON c.user_id = u.id
-       WHERE c.obituary_id = ? AND c.status = 'VERIFIED'
-       ORDER BY c.created_at DESC`,
-      [obituaryId]
-    );
+    const { data: contributionsData, error: contError } = await supabase
+      .from('contributions')
+      .select('id, amount_gross, payment_method, created_at, users!inner(first_name, last_name)')
+      .eq('obituary_id', obituaryId)
+      .eq('status', 'VERIFIED')
+      .order('created_at', { ascending: false });
+
+    if (contError) throw contError;
+
+    const contributions = contributionsData?.map((c: any) => ({
+      ...c,
+      first_name: c.users.first_name,
+      last_name: c.users.last_name,
+      users: undefined
+    })) || [];
 
     // Fetch all active deduction rates
-    const rates: any = await query(`SELECT * FROM deduction_rates WHERE is_active = TRUE`);
+    const { data: rates, error: ratesError } = await supabase
+      .from('deduction_rates')
+      .select('*')
+      .eq('is_active', true);
+
+    if (ratesError) throw ratesError;
 
     let totalGross = 0;
     let totalMomoGross = 0;
@@ -84,7 +102,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     }
 
     // Calculate other custom database deductions
-    rates.forEach((rate: any) => {
+    (rates || []).forEach((rate: any) => {
       // Skip if the user mistakenly added a manual "Mobile Money" rate in the DB to avoid double charging
       if (rate.name.toLowerCase().includes('mobile money') || rate.name.toLowerCase().includes('momo')) return;
 
@@ -108,9 +126,15 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const netAmount = totalGross - totalDeductions;
 
     // Fetch disbursements if any
-    const disbursements: any = await query(`SELECT * FROM disbursements WHERE obituary_id = ?`, [obituaryId]);
+    const { data: disbursements, error: disbError } = await supabase
+      .from('disbursements')
+      .select('*')
+      .eq('obituary_id', obituaryId);
+      
+    if (disbError) throw disbError;
+
     let totalDisbursed = 0;
-    disbursements.forEach((d: any) => {
+    (disbursements || []).forEach((d: any) => {
       totalDisbursed += parseFloat(d.amount_net);
     });
 

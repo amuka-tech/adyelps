@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import bcrypt from 'bcryptjs';
-import { logAction } from '@/lib/audit';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
@@ -13,28 +12,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Check if user already exists
-    const existingUsers = await query('SELECT * FROM users WHERE email = ?', [email]) as any[];
-    if (existingUsers.length > 0) {
-      return NextResponse.json({ error: 'User with this email already exists' }, { status: 409 });
+    const cookieStore = await cookies();
+    const supabase = createClient(cookieStore);
+
+    // Sign up the user via Supabase Auth
+    // Our database trigger will automatically create the record in the public.users table
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          firstName,
+          lastName,
+          classYear: classYear || null,
+          profession: profession || null,
+          phone: phone || null
+        }
+      }
+    });
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: error.status || 400 });
     }
 
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Insert user into database
-    const insertQuery = `
-      INSERT INTO users (first_name, last_name, email, password, class_year, profession, phone, account_status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING')
-    `;
-    
-    const insertRes: any = await query(insertQuery, [firstName, lastName, email, hashedPassword, classYear || null, profession || null, phone || null]);
-    const userId = insertRes.insertId;
-
-    await logAction(userId, 'USER_REGISTER', `New user registered: ${firstName} ${lastName} (${email})`);
-
-    return NextResponse.json({ message: 'User registered successfully' }, { status: 201 });
+    return NextResponse.json({ message: 'User registered successfully', user: data.user }, { status: 201 });
   } catch (error: any) {
     console.error('Registration error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

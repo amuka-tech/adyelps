@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 import crypto from 'crypto';
 
 export async function POST(request: Request) {
@@ -22,36 +23,47 @@ export async function POST(request: Request) {
 
     if (event.event === 'charge.success') {
       const reference = event.data.reference;
+      const supabase = createClient(await cookies());
 
       // 1. Mark transaction as success
-      await query(
-        `UPDATE transactions SET status = 'SUCCESS' WHERE reference = ? AND status = 'PENDING'`,
-        [reference]
-      );
+      await supabase
+        .from('transactions')
+        .update({ status: 'SUCCESS' })
+        .eq('reference', reference)
+        .eq('status', 'PENDING');
 
       // 2. Fetch the transaction to route logic
-      const txRes: any = await query(`SELECT * FROM transactions WHERE reference = ?`, [reference]);
+      const { data: txRes } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('reference', reference);
+
       if (txRes && txRes.length > 0) {
         const tx = txRes[0];
         const meta = typeof tx.metadata === 'string' ? JSON.parse(tx.metadata) : tx.metadata;
 
         // Route based on transaction type
         if (tx.type === 'EVENT_TICKET') {
-          await query(
-            `INSERT INTO event_tickets (user_id, event_id, ticket_type, price, status) VALUES (?, ?, ?, ?, 'ACTIVE')`,
-            [tx.user_id, meta.event_id, meta.ticket_type, tx.amount]
-          );
+          await supabase.from('event_tickets').insert({
+            user_id: tx.user_id,
+            event_id: meta.event_id,
+            ticket_type: meta.ticket_type,
+            price: tx.amount,
+            status: 'ACTIVE'
+          });
         } else if (tx.type === 'SHOP_ORDER') {
-          // Add basic order
-          await query(
-            `INSERT INTO shop_orders (user_id, total_amount, status) VALUES (?, ?, 'PENDING')`,
-            [tx.user_id, tx.amount]
-          );
+          await supabase.from('shop_orders').insert({
+            user_id: tx.user_id,
+            total_amount: tx.amount,
+            status: 'PENDING'
+          });
         } else if (tx.type === 'WELFARE_CONTRIBUTION') {
-          await query(
-            `INSERT INTO welfare_ledger (user_id, amount, contribution_type, status) VALUES (?, ?, 'MONTHLY', 'VERIFIED')`,
-            [tx.user_id, tx.amount]
-          );
+          await supabase.from('welfare_ledger').insert({
+            user_id: tx.user_id,
+            amount: tx.amount,
+            contribution_type: 'MONTHLY',
+            status: 'VERIFIED'
+          });
         }
       }
     }

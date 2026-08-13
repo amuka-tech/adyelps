@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
-    const user: any = await verifyToken(token);
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    const { data: userData } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (!userData || (userData.role !== 'ADMIN' && userData.role !== 'SUPER_ADMIN')) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -22,22 +21,22 @@ export async function POST(request: Request) {
     }
 
     // Insert Poll
-    const insertPoll: any = await query(
-      `INSERT INTO polls (title, description, poll_type, start_date, end_date, created_by_id) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [title, description, poll_type, start_date, end_date, user.id]
-    );
+    const { data: pollData, error: pollError } = await supabase.from('polls').insert([
+      { title, description, poll_type, start_date, end_date, created_by_id: user.id }
+    ]).select().single();
 
-    const pollId = insertPoll.insertId;
+    if (pollError) throw pollError;
+    const pollId = pollData.id;
 
     // Insert Options
-    for (const opt of options) {
-      if (opt.trim()) {
-        await query(
-          `INSERT INTO poll_options (poll_id, option_text) VALUES (?, ?)`,
-          [pollId, opt.trim()]
-        );
-      }
+    const optionsToInsert = options.filter((opt: string) => opt.trim()).map((opt: string) => ({
+      poll_id: pollId,
+      option_text: opt.trim()
+    }));
+
+    if (optionsToInsert.length > 0) {
+      const { error: optionsError } = await supabase.from('poll_options').insert(optionsToInsert);
+      if (optionsError) throw optionsError;
     }
 
     return NextResponse.json({ message: 'Poll created successfully', id: pollId }, { status: 201 });

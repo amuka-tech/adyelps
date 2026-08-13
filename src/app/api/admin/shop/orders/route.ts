@@ -1,25 +1,40 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
     
-    const user: any = await verifyToken(token);
-    if (!user || user.role !== 'SUPER_ADMIN') {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    
+    const { data: userData } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+      
+    if (!userData || userData.role !== 'SUPER_ADMIN') {
       return NextResponse.json({ error: 'Unauthorized. Super Admin access required.' }, { status: 403 });
     }
 
-    const orders = await query(`
-      SELECT o.*, u.first_name, u.last_name, u.email
-      FROM shop_orders o
-      JOIN users u ON o.user_id = u.id
-      ORDER BY o.created_at DESC
-    `);
+    const { data: ordersData, error } = await supabase
+      .from('shop_orders')
+      .select(`
+        *,
+        users (first_name, last_name, email)
+      `)
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
+    
+    const orders = ordersData?.map((o: any) => ({
+      ...o,
+      first_name: o.users?.first_name,
+      last_name: o.users?.last_name,
+      email: o.users?.email,
+    }));
     
     return NextResponse.json({ orders });
   } catch (error: any) {

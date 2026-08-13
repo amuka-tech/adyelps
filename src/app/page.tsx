@@ -21,9 +21,44 @@ export default async function Home() {
   let upcomingEvents: any[] = [];
   
   try {
-    const { query } = await import('@/lib/db');
-    latestNews = await query(`SELECT id, title, created_at, 'News' as type, SUBSTRING(content, 1, 150) as \`desc\`, image_url FROM news_articles WHERE status = 'PUBLISHED' ORDER BY created_at DESC LIMIT 2`) as any[];
-    upcomingEvents = await query(`SELECT id, title, event_date as created_at, 'Event' as type, description as \`desc\`, image_url FROM events WHERE event_date >= date('now') ORDER BY event_date ASC LIMIT 1`) as any[];
+    const { createClient } = await import('@/utils/supabase/server');
+    const supabase = createClient(cookieStore);
+
+    const { data: newsData } = await supabase
+      .from('news_articles')
+      .select('id, title, created_at, content, image_url')
+      .eq('status', 'PUBLISHED')
+      .order('created_at', { ascending: false })
+      .limit(2);
+      
+    if (newsData) {
+      latestNews = newsData.map(item => ({
+        id: item.id,
+        title: item.title,
+        created_at: item.created_at,
+        type: 'News',
+        desc: item.content ? item.content.substring(0, 150) : '',
+        image_url: item.image_url
+      }));
+    }
+
+    const { data: eventsData } = await supabase
+      .from('events')
+      .select('id, title, event_date, description, image_url')
+      .gte('event_date', new Date().toISOString())
+      .order('event_date', { ascending: true })
+      .limit(1);
+
+    if (eventsData) {
+      upcomingEvents = eventsData.map(item => ({
+        id: item.id,
+        title: item.title,
+        created_at: item.event_date,
+        type: 'Event',
+        desc: item.description,
+        image_url: item.image_url
+      }));
+    }
   } catch (e) {
     console.error(e);
   }

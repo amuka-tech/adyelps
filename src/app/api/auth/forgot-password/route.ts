@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
 import { sendEmail } from '@/lib/email';
 import crypto from 'crypto';
 
@@ -11,9 +12,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
+    const supabase = createClient(await cookies());
+
     // Check if user exists
-    const users: any = await query('SELECT id, first_name FROM users WHERE email = ?', [email]);
-    if (users.length === 0) {
+    const { data: users, error: selectError } = await supabase
+      .from('users')
+      .select('id, first_name')
+      .eq('email', email);
+
+    if (selectError || !users || users.length === 0) {
       // Return success even if not found to prevent email enumeration attacks
       return NextResponse.json({ message: 'If that email is registered, a reset link has been sent.' });
     }
@@ -28,10 +35,13 @@ export async function POST(request: Request) {
     expiresAt.setHours(expiresAt.getHours() + 1);
 
     // Insert into DB
-    await query(
-      `INSERT INTO password_resets (user_id, token, expires_at) VALUES (?, ?, ?)`,
-      [user.id, token, expiresAt]
-    );
+    const { error: insertError } = await supabase
+      .from('password_resets')
+      .insert([
+        { user_id: user.id, token, expires_at: expiresAt.toISOString() }
+      ]);
+      
+    if (insertError) throw insertError;
 
     // Construct reset URL
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';

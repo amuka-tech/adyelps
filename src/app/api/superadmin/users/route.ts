@@ -1,48 +1,31 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
-import * as jose from 'jose';
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'fallback_secret_for_development_only_please_change');
-
-async function getSuperAdminFromCookie() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('auth_token')?.value;
-  if (!token) return null;
-  try {
-    const { payload } = await jose.jwtVerify(token, JWT_SECRET);
-    if (payload.role !== 'SUPER_ADMIN' && (!(payload as any).assignedRoles || !(payload as any).assignedRoles.includes('Super Admin'))) return null;
-    return payload as any;
-  } catch (err) {
-    return null;
-  }
-}
 
 export async function GET(request: Request) {
   try {
-    const admin = await getSuperAdminFromCookie();
-    if (!admin) {
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized. Super Admin access required.' }, { status: 401 });
+
+    const { data: dbUser } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (!dbUser || dbUser.role !== 'SUPER_ADMIN') {
       return NextResponse.json({ error: 'Unauthorized. Super Admin access required.' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
 
-    let sql = `
-      SELECT id, first_name, last_name, email, role, class_year, profession, account_status, created_at 
-      FROM users 
-    `;
-    const params: any[] = [];
+    let query = supabase
+      .from('users')
+      .select('id, first_name, last_name, email, role, class_year, profession, account_status, created_at')
+      .order('created_at', { ascending: false });
 
     if (search) {
-      sql += ` WHERE email LIKE ? OR first_name LIKE ? OR last_name LIKE ? `;
-      const likeQuery = `%${search}%`;
-      params.push(likeQuery, likeQuery, likeQuery);
+      query = query.or(`email.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%`);
     }
 
-    sql += ` ORDER BY created_at DESC`;
-
-    const users = await query(sql, params);
+    const { data: users } = await query;
     
     return NextResponse.json({ users });
   } catch (error: any) {

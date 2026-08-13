@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
-import { verifyToken } from '@/lib/auth';
+import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const supabase = createClient(await cookies());
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     
-    const user: any = await verifyToken(token);
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+    const { data: dbUser } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (!dbUser || (dbUser.role !== 'ADMIN' && dbUser.role !== 'SUPER_ADMIN')) {
       // In a real system, there might be an 'EVENT_STAFF' role, but we use ADMIN here
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
@@ -23,19 +22,22 @@ export async function POST(request: Request) {
     }
 
     // Find the ticket
-    const ticketResult: any = await query(`
-      SELECT r.*, u.first_name, u.last_name, t.name as tier_name
-      FROM event_registrations r
-      JOIN users u ON r.user_id = u.id
-      JOIN event_ticket_tiers t ON r.ticket_tier_id = t.id
-      WHERE r.qr_token = ?
-    `, [qr_token]);
-
-    if (!ticketResult || ticketResult.length === 0) {
+    const { data: regs } = await supabase.from('event_registrations').select('*').eq('qr_token', qr_token);
+    
+    if (!regs || regs.length === 0) {
       return NextResponse.json({ valid: false, message: 'Invalid ticket - Not found in system' }, { status: 404 });
     }
 
-    const ticket = ticketResult[0];
+    const reg = regs[0];
+    const { data: u } = await supabase.from('users').select('first_name, last_name').eq('id', reg.user_id).single();
+    const { data: t } = await supabase.from('event_ticket_tiers').select('name').eq('id', reg.ticket_tier_id).single();
+
+    const ticket = {
+      ...reg,
+      first_name: u?.first_name,
+      last_name: u?.last_name,
+      tier_name: t?.name
+    };
 
     if (ticket.status !== 'PAID') {
        return NextResponse.json({ valid: false, message: `Ticket status is ${ticket.status}. Payment required.` }, { status: 400 });
@@ -51,8 +53,8 @@ export async function POST(request: Request) {
     }
 
     // Valid ticket, let's check them in
-    const currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    await query(`UPDATE event_registrations SET is_checked_in = TRUE, check_in_time = ? WHERE id = ?`, [currentTime, ticket.id]);
+    const currentTime = new Date().toISOString();
+    await supabase.from('event_registrations').update({ is_checked_in: true, check_in_time: currentTime }).eq('id', ticket.id);
 
     return NextResponse.json({ 
       valid: true, 
