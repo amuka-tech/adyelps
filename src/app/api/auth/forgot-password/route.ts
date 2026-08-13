@@ -40,14 +40,14 @@ export async function POST(request: Request) {
     // Send email
     const emailHtml = `
       <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-        <h2 style="color: #800000;">Adyel Alumni Platform</h2>
+        <h2 style="color: #800000;">LTC Alumni Platform</h2>
         <p>Hello ${user.first_name},</p>
         <p>We received a request to reset your password. Click the button below to choose a new password. This link will expire in 1 hour.</p>
         <div style="text-align: center; margin: 30px 0;">
           <a href="${resetUrl}" style="background-color: #800000; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
         </div>
         <p>If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
-        <p style="color: #888; font-size: 12px; margin-top: 30px;">&copy; ${new Date().getFullYear()} Adyel Alumni Association.</p>
+        <p style="color: #888; font-size: 12px; margin-top: 30px;">&copy; ${new Date().getFullYear()} LTC Adyel Alumni Network.</p>
       </div>
     `;
 

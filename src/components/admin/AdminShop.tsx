@@ -39,7 +39,7 @@ export default function AdminShop({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-500 mb-1">Product Name</label>
-              <input required type="text" placeholder="e.g. Adyel Polo Shirt" value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-maroon/20 outline-none" />
+              <input required type="text" placeholder="e.g. LTC Polo Shirt" value={productForm.name} onChange={e => setProductForm({...productForm, name: e.target.value})} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-maroon/20 outline-none" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-500 mb-1">Price (UGX)</label>

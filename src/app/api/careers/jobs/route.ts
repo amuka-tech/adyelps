@@ -23,7 +23,7 @@ export async function GET(request: Request) {
       FROM jobs j
       JOIN users u ON j.posted_by_id = u.id
       WHERE j.status = 'ACTIVE' 
-      AND j.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+      AND j.created_at >= datetime('now', '-30 days')
     `;
     const params: any[] = [];
 

@@ -2,8 +2,8 @@ import React from 'react';
 import { Button } from '@/components/Button';
 
 export const metadata = {
-  title: 'Alumni Spotlight | Adyel Alumni',
-  description: 'Highlighting the success stories and achievements of distinguished Adyel former pupils.',
+  title: 'Alumni Spotlight | LTC Alumni',
+  description: 'Highlighting the success stories and achievements of distinguished LTC former pupils.',
 };
 
 export default function SpotlightPage() {
@@ -12,8 +12,8 @@ export default function SpotlightPage() {
       name: "Dr. Florence Acen",
       class: "Class of 1988",
       field: "Medicine",
-      story: "Dr. Acen is currently the Head Surgeon at Mulago National Referral Hospital. She attributes her passion for science and helping others to the strong foundation laid at Adyel. Recently, she led a team that successfully separated conjoined twins, making national headlines.",
-      quote: "Adyel taught me that with discipline and focus, no dream is too big. The teachers believed in me before I believed in myself.",
+      story: "Dr. Acen is currently the Head Surgeon at Mulago National Referral Hospital. She attributes her passion for science and helping others to the strong foundation laid at LTC. Recently, she led a team that successfully separated conjoined twins, making national headlines.",
+      quote: "LTC taught me that with discipline and focus, no dream is too big. The teachers believed in me before I believed in myself.",
       img: "FA"
     },
     {
@@ -21,7 +21,7 @@ export default function SpotlightPage() {
       class: "Class of 1992",
       field: "Public Service",
       story: "A dedicated public servant, Hon. Oweka serves as a Member of Parliament representing his home district. He has been instrumental in passing legislation that improves primary healthcare funding and rural electrification.",
-      quote: "Leadership is about service, a value instilled in us during our time as prefects at Adyel.",
+      quote: "Leadership is about service, a value instilled in us during our time as prefects at LTC.",
       img: "JO"
     },
     {
@@ -29,7 +29,7 @@ export default function SpotlightPage() {
       class: "Class of 2001",
       field: "Business & Entrepreneurship",
       story: "Grace is the founder and CEO of 'TechAgri,' a startup that uses mobile technology to connect rural farmers directly to markets. Her company recently secured $2M in seed funding and operates in three East African countries.",
-      quote: "The diverse community at Adyel prepared me to work with people from all walks of life.",
+      quote: "The diverse community at LTC prepared me to work with people from all walks of life.",
       img: "GK"
     }
   ];
@@ -82,7 +82,7 @@ export default function SpotlightPage() {
       {/* Nominate Call to Action */}
       <section className="py-20 bg-maroon text-white text-center">
         <div className="container mx-auto px-4 max-w-3xl">
-          <h2 className="text-3xl font-bold mb-6">Know an Inspiring Adyelite?</h2>
+          <h2 className="text-3xl font-bold mb-6">Know an Inspiring LTC Alumnus?</h2>
           <p className="text-lg mb-8 text-pink/90">
             We are always looking for more success stories to feature in our Spotlight and inspire current pupils. Nominate a former classmate today!
           </p>

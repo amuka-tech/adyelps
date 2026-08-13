@@ -54,13 +54,11 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
         
         {/* LOGO */}
-        <Link href="/" className="flex items-center group">
-          <div className="w-12 h-12 bg-maroon rounded-full flex items-center justify-center mr-3 shadow-lg group-hover:scale-105 transition-transform">
-            <span className="text-white font-black text-xl tracking-tighter">A<span className="text-pink">P</span>S</span>
+        <Link href="/" className="flex items-center space-x-3 group">
+          <div className="w-10 h-10 bg-maroon rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:bg-maroon-dark transition-colors">
+            LTC
           </div>
-          <div>
-            <span className="font-black text-xl text-gray-900 tracking-tight block leading-tight">Adyel Primary<br/><span className="text-maroon text-sm">Alumni Network</span></span>
-          </div>
+          <span className="font-black text-xl text-gray-900 tracking-tight block leading-tight">Adyel<br/><span className="text-maroon text-sm">OBs &amp; OGs</span></span>
         </Link>
         
         {/* DESKTOP NAV */}

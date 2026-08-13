@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     // Insert Tiers
     for (const tier of tiers) {
       await query(
-        `INSERT INTO ticket_tiers (event_id, name, price, capacity) VALUES (?, ?, ?, ?)`,
+        `INSERT INTO event_ticket_tiers (event_id, name, price, capacity) VALUES (?, ?, ?, ?)`,
         [eventId, tier.name, tier.price, tier.capacity]
       );
     }

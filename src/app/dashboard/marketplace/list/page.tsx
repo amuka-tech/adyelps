@@ -56,7 +56,7 @@ export default function ListBusinessPage() {
 
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">List Your Business</h1>
-        <p className="text-gray-500 text-sm">Promote your services to the Adyel Alumni network.</p>
+        <p className="text-gray-500 text-sm">Promote your services to the LTC Alumni network.</p>
       </div>
 
       <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden max-w-4xl">
@@ -118,7 +118,7 @@ export default function ListBusinessPage() {
                 <div>
                   <label className="font-bold text-gray-900 block cursor-pointer">Offer an exclusive Alumni Discount</label>
                   <p className="text-sm text-gray-600 mt-1 leading-relaxed">
-                    Attract more clients from the network by offering a special discount to fellow Adyelites.
+                    Attract more clients from the network by offering a special discount to fellow LTC Alumni.
                   </p>
                 </div>
               </div>

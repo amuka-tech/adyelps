@@ -28,7 +28,7 @@ export default function WelfareHubPage() {
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">Bereavement & Welfare Fund</h1>
-        <p className="text-gray-500 text-sm">Supporting our fellow Adyelites and their families during difficult times.</p>
+        <p className="text-gray-500 text-sm">Supporting our fellow LTC Alumni and their families during difficult times.</p>
       </div>
 
       <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 flex flex-col justify-center text-center mb-8">

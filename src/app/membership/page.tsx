@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader } from '@/components/Card';
 import { RegistrationForm } from '@/components/RegistrationForm';
 
 export const metadata = {
-  title: 'Membership | Adyel Alumni',
-  description: 'Join the Adyel Alumni network and connect with old classmates in our directory.',
+  title: 'Membership | LTC Alumni',
+  description: 'Join the LTC Alumni network and connect with old classmates in our directory.',
 };
 
 export default function MembershipPage() {

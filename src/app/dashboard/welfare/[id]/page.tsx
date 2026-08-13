@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function ObituaryDetailsPage() {
   const params = useParams();

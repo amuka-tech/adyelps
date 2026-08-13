@@ -90,7 +90,7 @@ export default function OverviewPage() {
           <div>
             <span className="bg-white/20 px-3 py-1 text-xs font-bold rounded-full uppercase tracking-wider mb-4 inline-block">Active Membership</span>
             <h2 className="text-3xl font-bold mb-2">Ordinary Member</h2>
-            <p className="text-white/80 text-sm max-w-sm mb-6">Your membership is currently active and in good standing. Thank you for supporting Adyel Primary School!</p>
+            <p className="text-white/80 text-sm max-w-sm mb-6">Your membership is currently active and in good standing. Thank you for supporting Adyel!</p>
           </div>
           <div className="flex gap-3 relative z-10">
             <button onClick={() => setShowIdModal(true)} className="bg-white text-maroon font-bold text-sm px-5 py-2 rounded-xl shadow-sm hover:bg-gray-50 transition-colors">View ID Card</button>

@@ -20,10 +20,10 @@ export function Footer() {
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-maroon font-bold text-xl">
                 A
               </div>
-              <span className="font-bold text-xl text-white">Adyel Alumni</span>
+              <span className="font-bold text-xl text-white">LTC Adyel</span>
             </Link>
             <p className="text-gray-300 text-sm leading-relaxed mb-6">
-              Uniting former pupils of Adyel Day and Boarding Primary School, preserving our shared heritage, and giving back to our alma mater.
+              Uniting the OBs & OGs of Adyel, preserving our shared heritage, and giving back to our alma mater.
             </p>
             <div className="flex space-x-4">
               {/* Social Media placeholders */}
@@ -83,7 +83,7 @@ export function Footer() {
         
         <div className="border-t border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm text-center md:text-left mb-4 md:mb-0">
-            &copy; {new Date().getFullYear()} Adyel Day and Boarding Primary School Alumni Association. All rights reserved.
+            &copy; {new Date().getFullYear()} Adyel OBs & OGs Alumni Network. All rights reserved.
           </p>
           <div className="flex space-x-6 text-sm text-gray-400">
             <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>

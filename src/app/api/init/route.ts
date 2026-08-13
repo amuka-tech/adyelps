@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const createUsersTableQuery = `
       CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         first_name VARCHAR(100) NOT NULL,
         last_name VARCHAR(100) NOT NULL,
         email VARCHAR(255) NOT NULL UNIQUE,
@@ -20,16 +20,16 @@ export async function GET() {
 
     // Try to add role column. Catch error if it already exists (ER_DUP_FIELDNAME)
     try {
-      await query(`ALTER TABLE users ADD COLUMN role ENUM('MEMBER', 'ADMIN', 'TREASURER', 'SUPER_ADMIN') DEFAULT 'MEMBER';`);
+      await query(`ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'MEMBER';`);
     } catch (err: any) {
-      if (err.code !== 'ER_DUP_FIELDNAME') {
+      if (!(err.message && err.message.includes('duplicate column name'))) {
         throw err;
       }
     }
 
     const createObituariesTable = `
       CREATE TABLE IF NOT EXISTS obituaries (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         deceased_name VARCHAR(255) NOT NULL,
         biography TEXT,
         photo_url VARCHAR(255),
@@ -37,7 +37,7 @@ export async function GET() {
         spokesperson_contact VARCHAR(255),
         target_amount DECIMAL(15,2),
         contribution_expiry DATETIME,
-        status ENUM('ACTIVE', 'DISBURSED', 'CLOSED') DEFAULT 'ACTIVE',
+        status TEXT DEFAULT 'ACTIVE',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
@@ -45,24 +45,24 @@ export async function GET() {
 
     const createDeductionRatesTable = `
       CREATE TABLE IF NOT EXISTS deduction_rates (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         name VARCHAR(100) NOT NULL,
-        rate_type ENUM('PERCENTAGE', 'FIXED') NOT NULL,
+        rate_type TEXT NOT NULL,
         amount DECIMAL(10,2) NOT NULL,
         is_active BOOLEAN DEFAULT TRUE,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
     await query(createDeductionRatesTable);
 
     const createContributionsTable = `
       CREATE TABLE IF NOT EXISTS contributions (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         obituary_id INT NOT NULL,
         user_id INT NOT NULL,
         amount_gross DECIMAL(15,2) NOT NULL,
-        payment_method ENUM('MOBILE_MONEY', 'BANK_TRANSFER', 'CASH') NOT NULL,
-        status ENUM('PENDING', 'VERIFIED', 'REJECTED') DEFAULT 'PENDING',
+        payment_method TEXT NOT NULL,
+        status TEXT DEFAULT 'PENDING',
         verified_by_id INT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (obituary_id) REFERENCES obituaries(id),
@@ -74,7 +74,7 @@ export async function GET() {
 
     const createDisbursementsTable = `
       CREATE TABLE IF NOT EXISTS disbursements (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         obituary_id INT NOT NULL,
         amount_net DECIMAL(15,2) NOT NULL,
         proof_url VARCHAR(255) NOT NULL,
@@ -88,7 +88,7 @@ export async function GET() {
 
     const createCondolencesTable = `
       CREATE TABLE IF NOT EXISTS condolences (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         obituary_id INT NOT NULL,
         user_id INT NOT NULL,
         message TEXT NOT NULL,
@@ -113,18 +113,18 @@ export async function GET() {
 
     const createJobsTable = `
       CREATE TABLE IF NOT EXISTS jobs (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         posted_by_id INT NOT NULL,
         title VARCHAR(255) NOT NULL,
         company VARCHAR(255) NOT NULL,
         industry VARCHAR(100) NOT NULL,
         location VARCHAR(255) NOT NULL,
-        job_type ENUM('FULL_TIME', 'PART_TIME', 'CONTRACT', 'REMOTE', 'INTERNSHIP') NOT NULL,
+        job_type TEXT NOT NULL,
         description TEXT NOT NULL,
         requirements TEXT NOT NULL,
         application_link VARCHAR(255),
         offers_referral BOOLEAN DEFAULT FALSE,
-        status ENUM('PENDING', 'ACTIVE', 'EXPIRED', 'REJECTED') DEFAULT 'PENDING',
+        status TEXT DEFAULT 'PENDING',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (posted_by_id) REFERENCES users(id)
       );
@@ -133,12 +133,12 @@ export async function GET() {
 
     const createReferralRequestsTable = `
       CREATE TABLE IF NOT EXISTS referral_requests (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         job_id INT NOT NULL,
         requester_id INT NOT NULL,
         poster_id INT NOT NULL,
         message TEXT,
-        status ENUM('PENDING', 'ACCEPTED', 'DECLINED') DEFAULT 'PENDING',
+        status TEXT DEFAULT 'PENDING',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (job_id) REFERENCES jobs(id),
         FOREIGN KEY (requester_id) REFERENCES users(id),
@@ -149,7 +149,7 @@ export async function GET() {
 
     await query(`
       CREATE TABLE IF NOT EXISTS businesses (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         owner_id INT NOT NULL,
         business_name VARCHAR(255) NOT NULL,
         category VARCHAR(100) NOT NULL,
@@ -159,7 +159,7 @@ export async function GET() {
         whatsapp_number VARCHAR(50) NOT NULL,
         offers_alumni_discount BOOLEAN DEFAULT FALSE,
         discount_details VARCHAR(255),
-        status ENUM('PENDING', 'ACTIVE', 'REJECTED') DEFAULT 'PENDING',
+        status TEXT DEFAULT 'PENDING',
         is_featured BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
@@ -168,13 +168,13 @@ export async function GET() {
 
     await query(`
       CREATE TABLE IF NOT EXISTS events (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         title VARCHAR(255) NOT NULL,
         description TEXT NOT NULL,
         event_date DATETIME NOT NULL,
         location VARCHAR(255) NOT NULL,
         image_url VARCHAR(255),
-        status ENUM('UPCOMING', 'ONGOING', 'COMPLETED', 'CANCELLED') DEFAULT 'UPCOMING',
+        status TEXT DEFAULT 'UPCOMING',
         created_by_id INT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (created_by_id) REFERENCES users(id)
@@ -183,7 +183,7 @@ export async function GET() {
 
     await query(`
       CREATE TABLE IF NOT EXISTS ticket_tiers (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         event_id INT NOT NULL,
         name VARCHAR(100) NOT NULL,
         price DECIMAL(10,2) NOT NULL,
@@ -194,13 +194,13 @@ export async function GET() {
 
     await query(`
       CREATE TABLE IF NOT EXISTS event_registrations (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         event_id INT NOT NULL,
         user_id INT NOT NULL,
         ticket_tier_id INT NOT NULL,
         dietary_requirements VARCHAR(255),
         special_requirements VARCHAR(255),
-        status ENUM('PENDING', 'PAID', 'CANCELLED') DEFAULT 'PAID',
+        status TEXT DEFAULT 'PAID',
         qr_token VARCHAR(255) UNIQUE NOT NULL,
         is_checked_in BOOLEAN DEFAULT FALSE,
         check_in_time DATETIME,
@@ -214,20 +214,20 @@ export async function GET() {
     try {
       await query(`ALTER TABLE users ADD COLUMN hide_contact_info BOOLEAN DEFAULT FALSE;`);
     } catch (err: any) {
-      if (err.code !== 'ER_DUP_FIELDNAME') {
+      if (!(err.message && err.message.includes('duplicate column name'))) {
         throw err;
       }
     }
 
     await query(`
       CREATE TABLE IF NOT EXISTS polls (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         title VARCHAR(255) NOT NULL,
         description TEXT NOT NULL,
-        poll_type ENUM('ELECTION', 'AMENDMENT') NOT NULL,
+        poll_type TEXT NOT NULL,
         start_date DATETIME NOT NULL,
         end_date DATETIME NOT NULL,
-        status ENUM('ACTIVE', 'CLOSED') DEFAULT 'ACTIVE',
+        status TEXT DEFAULT 'ACTIVE',
         created_by_id INT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (created_by_id) REFERENCES users(id)
@@ -236,7 +236,7 @@ export async function GET() {
 
     await query(`
       CREATE TABLE IF NOT EXISTS poll_options (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         poll_id INT NOT NULL,
         option_text VARCHAR(255) NOT NULL,
         FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE
@@ -245,7 +245,7 @@ export async function GET() {
 
     await query(`
       CREATE TABLE IF NOT EXISTS poll_votes (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         poll_id INT NOT NULL,
         user_id INT NOT NULL,
         poll_option_id INT NOT NULL,
@@ -253,15 +253,15 @@ export async function GET() {
         FOREIGN KEY (poll_id) REFERENCES polls(id) ON DELETE CASCADE,
         FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (poll_option_id) REFERENCES poll_options(id),
-        UNIQUE KEY unique_user_poll (poll_id, user_id)
+        UNIQUE (poll_id, user_id)
       )
     `);
 
     await query(`
       CREATE TABLE IF NOT EXISTS documents (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         title VARCHAR(255) NOT NULL,
-        doc_type ENUM('FINANCIAL_REPORT', 'CONSTITUTION') NOT NULL,
+        doc_type TEXT NOT NULL,
         file_url VARCHAR(255) NOT NULL,
         uploaded_by_id INT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -271,14 +271,14 @@ export async function GET() {
 
     await query(`
       CREATE TABLE IF NOT EXISTS projects (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         title VARCHAR(255) NOT NULL,
         description TEXT NOT NULL,
         goal_amount DECIMAL(15,2) NOT NULL,
         raised_amount DECIMAL(15,2) DEFAULT 0.00,
         image_url VARCHAR(255),
         deadline DATETIME,
-        status ENUM('ACTIVE', 'COMPLETED', 'CANCELLED') DEFAULT 'ACTIVE',
+        status TEXT DEFAULT 'ACTIVE',
         created_by_id INT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (created_by_id) REFERENCES users(id)
@@ -287,12 +287,12 @@ export async function GET() {
 
     await query(`
       CREATE TABLE IF NOT EXISTS project_donations (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INT NOT NULL,
         user_id INT NOT NULL,
         amount DECIMAL(15,2) NOT NULL,
         is_anonymous BOOLEAN DEFAULT FALSE,
-        payment_status ENUM('PENDING', 'COMPLETED', 'FAILED') DEFAULT 'COMPLETED',
+        payment_status TEXT DEFAULT 'COMPLETED',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
         FOREIGN KEY (user_id) REFERENCES users(id)
@@ -301,12 +301,12 @@ export async function GET() {
 
     await query(`
       CREATE TABLE IF NOT EXISTS news_articles (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         title VARCHAR(255) NOT NULL,
         content LONGTEXT NOT NULL,
         image_url VARCHAR(255),
         category VARCHAR(100) NOT NULL,
-        status ENUM('DRAFT', 'PUBLISHED', 'ARCHIVED') DEFAULT 'DRAFT',
+        status TEXT DEFAULT 'DRAFT',
         author_id INT NOT NULL,
         published_at DATETIME,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -316,7 +316,7 @@ export async function GET() {
 
     await query(`
       CREATE TABLE IF NOT EXISTS project_updates (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         project_id INT NOT NULL,
         title VARCHAR(255) NOT NULL,
         description TEXT NOT NULL,
@@ -328,23 +328,23 @@ export async function GET() {
 
     await query(`
       CREATE TABLE IF NOT EXISTS shop_products (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         name VARCHAR(255) NOT NULL,
         description TEXT NOT NULL,
         price DECIMAL(10,2) NOT NULL,
         stock_quantity INT NOT NULL DEFAULT 0,
         image_url VARCHAR(255),
-        status ENUM('ACTIVE', 'OUT_OF_STOCK', 'DISCONTINUED') DEFAULT 'ACTIVE',
+        status TEXT DEFAULT 'ACTIVE',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
     await query(`
       CREATE TABLE IF NOT EXISTS shop_orders (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INT NOT NULL,
         total_amount DECIMAL(15,2) NOT NULL,
-        status ENUM('PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED') DEFAULT 'PENDING',
+        status TEXT DEFAULT 'PENDING',
         shipping_address TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
@@ -353,7 +353,7 @@ export async function GET() {
 
     await query(`
       CREATE TABLE IF NOT EXISTS shop_order_items (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         order_id INT NOT NULL,
         product_id INT NOT NULL,
         quantity INT NOT NULL,

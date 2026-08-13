@@ -36,7 +36,7 @@ export default function GiveBackPage() {
       <div className="bg-maroon/5 rounded-[2rem] p-6 mb-8 border border-maroon/10 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-gray-900 mb-1">Leave a Legacy</h3>
-          <p className="text-gray-600 text-sm">Adyel Primary School shaped who we are today.</p>
+          <p className="text-gray-600 text-sm">Adyel shaped who we are today.</p>
         </div>
         <div className="hidden md:block bg-white text-maroon font-bold px-4 py-2 rounded-xl shadow-sm border border-maroon/20">
           Over UGX 50M raised!

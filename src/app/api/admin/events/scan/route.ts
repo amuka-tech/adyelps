@@ -27,7 +27,7 @@ export async function POST(request: Request) {
       SELECT r.*, u.first_name, u.last_name, t.name as tier_name
       FROM event_registrations r
       JOIN users u ON r.user_id = u.id
-      JOIN ticket_tiers t ON r.ticket_tier_id = t.id
+      JOIN event_ticket_tiers t ON r.ticket_tier_id = t.id
       WHERE r.qr_token = ?
     `, [qr_token]);
 
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ 
       valid: true, 
-      message: 'VALID - Adyelite Verified',
+      message: 'VALID - LTC Alumnus Verified',
       details: `${ticket.first_name} ${ticket.last_name} (${ticket.tier_name})`
     }, { status: 200 });
 

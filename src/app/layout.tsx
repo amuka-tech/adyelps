@@ -10,8 +10,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Adyel Alumni | Once an Adyelite, Always an Adyelite",
-  description: "Official website for the Adyel Day and Boarding Primary School Alumni Association. Join the network, reconnect with old friends, and give back to our alma mater.",
+  title: "Adyel | Adyel Alumni Network",
+  description: "Official website for the Adyel Adyel Alumni Association. Join the network, reconnect with old friends, and give back to our alma mater.",
 };
 
 export default function RootLayout({

@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     await query(
       `INSERT INTO system_settings (setting_key, setting_value, description) 
        VALUES (?, ?, ?) 
-       ON DUPLICATE KEY UPDATE setting_value = ?, description = ?`,
+       ON CONFLICT(setting_key) DO UPDATE SET setting_value = ?, description = ?`,
       [key, value, description || '', value, description || '']
     );
 

@@ -11,7 +11,7 @@ export default function ArchivePage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-1 flex items-center gap-2">
             Nostalgia & Yearbook Archive <span className="text-xl">🎓</span>
           </h1>
-          <p className="text-gray-500 text-sm">A trip down memory lane. The history of Adyel Primary School.</p>
+          <p className="text-gray-500 text-sm">A trip down memory lane. The history of Adyel.</p>
         </div>
       </div>
 
@@ -102,8 +102,8 @@ export default function ArchivePage() {
               </div>
               <h3 className="text-2xl font-bold mb-4">The School Anthem</h3>
               <div className="space-y-4 text-white/90 text-sm leading-relaxed italic border-l-4 border-pink pl-4">
-                <p>Oh Adyel, our beloved school,<br/>The fountain of knowledge and truth.<br/>We sing your praises loud and clear,<br/>For shaping the minds of our youth.</p>
-                <p>Forward we march with heads held high,<br/>With discipline, hard work, and grace.<br/>Once an Adyelite, always an Adyelite,<br/>We make the world a better place!</p>
+                <p>Oh LTC, our beloved school,<br/>The fountain of knowledge and truth.<br/>We sing your praises loud and clear,<br/>For shaping the minds of our youth.</p>
+                <p>Forward we march with heads held high,<br/>With discipline, hard work, and grace.<br/>Once an LTC Alumnus, always an LTC Alumnus,<br/>We make the world a better place!</p>
               </div>
               <button onClick={() => showToast("Audio playback coming soon!", "info")} className="mt-8 w-full bg-white text-maroon font-bold py-3 rounded-xl shadow-sm hover:bg-gray-50 transition-colors">Play Audio</button>
             </div>

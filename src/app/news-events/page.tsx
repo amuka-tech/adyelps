@@ -6,17 +6,17 @@ import { Footer } from '@/components/Footer';
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'News & Events | Adyel Alumni',
-  description: 'Stay updated with the latest news, announcements, and upcoming events from the Adyel Alumni Association.',
+  title: 'News & Events | LTC Alumni',
+  description: 'Stay updated with the latest news, announcements, and upcoming events from the LTC Adyel Alumni Network.',
 };
 
 export default function NewsEventsPage() {
   const events = [
     {
-      title: "Adyel Family Day & Picnic 2026",
+      title: "LTC Family Day & Picnic 2026",
       date: "August 15, 2026",
       time: "10:00 AM - 5:00 PM",
-      location: "Adyel Primary School Playground",
+      location: "Adyel Playground",
       desc: "A fun-filled day for alumni to bring their spouses and children. Enjoy games, barbecue, and networking in a relaxed atmosphere.",
       price: "UGX 20,000"
     },

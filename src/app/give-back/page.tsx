@@ -34,7 +34,7 @@ export default function GiveBackPage() {
         <div className="container mx-auto px-4 relative z-10 text-center max-w-3xl">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">Leave a Legacy. Give Back.</h1>
           <p className="text-xl text-skyblue mb-8">
-            Adyel Primary School shaped who we are today. Join fellow alumni in funding critical infrastructure projects, scholarships, and resources for the next generation.
+            Adyel shaped who we are today. Join fellow Adyel alumni in funding our 3 flagship projects for 2026: the Parents' Waiting Pavilion, Sanitary Pads support, and Education Support for Needy Learners.
           </p>
           <div className="inline-block bg-maroon/20 border border-maroon text-pink px-6 py-3 rounded-full font-medium">
             Over UGX 50M raised by alumni to date!

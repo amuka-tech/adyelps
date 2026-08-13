@@ -3,8 +3,8 @@ import { Button } from '@/components/Button';
 import { Card, CardContent } from '@/components/Card';
 
 export const metadata = {
-  title: 'Contact Us | Adyel Alumni',
-  description: 'Get in touch with the Adyel Alumni Association executive committee.',
+  title: 'Contact Us | LTC Alumni',
+  description: 'Get in touch with the Adyel Adyel executive committee.',
 };
 
 export default function ContactPage() {
@@ -33,7 +33,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900">Address</h3>
-                    <p className="text-gray-600 text-sm mt-1">Adyel Day and Boarding Primary School<br />Lira City, Uganda</p>
+                    <p className="text-gray-600 text-sm mt-1">Adyel<br />Lira City, Uganda</p>
                   </div>
                 </div>
 
@@ -43,7 +43,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900">Email</h3>
-                    <p className="text-gray-600 text-sm mt-1">info@adyelalumni.org<br />exec@adyelalumni.org</p>
+                    <p className="text-gray-600 text-sm mt-1">info@liratowncollege.sc.ug<br />exec@liratowncollege.sc.ug</p>
                   </div>
                 </div>
 

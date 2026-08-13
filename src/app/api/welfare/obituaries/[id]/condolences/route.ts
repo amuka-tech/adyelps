@@ -12,6 +12,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     
     const user: any = await verifyToken(token);
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    
+    if (!user.id) {
+      return NextResponse.json({ error: 'System Admin account cannot post condolences.' }, { status: 403 });
+    }
 
     const body = await request.json();
     const { message } = body;

@@ -24,7 +24,7 @@ export default async function PublicDirectoryPage() {
             </svg>
           </div>
           <h1 className="text-4xl font-extrabold text-gray-900 mb-2">Alumni Directory</h1>
-          <p className="text-gray-500 font-medium">Connect with generations of Adyelites.</p>
+          <p className="text-gray-500 font-medium">Connect with generations of LTC Alumni.</p>
         </div>
 
         <div className="p-12">

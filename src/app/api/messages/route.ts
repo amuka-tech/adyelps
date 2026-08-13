@@ -87,7 +87,7 @@ export async function POST(request: Request) {
 
         const emailHtml = `
           <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-            <h2 style="color: #800000;">New Message on Adyel Alumni</h2>
+            <h2 style="color: #800000;">New Message on LTC Alumni</h2>
             <p>Hello ${receiver.first_name},</p>
             <p>You have received a new direct message from <strong>${sender.first_name} ${sender.last_name}</strong>.</p>
             <blockquote style="border-left: 4px solid #800000; padding-left: 15px; margin: 20px 0; font-style: italic; color: #555;">
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
             <div style="text-align: center; margin: 30px 0;">
               <a href="${inboxUrl}" style="background-color: #800000; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reply to Message</a>
             </div>
-            <p style="color: #888; font-size: 12px; margin-top: 30px;">&copy; ${new Date().getFullYear()} Adyel Alumni Association.</p>
+            <p style="color: #888; font-size: 12px; margin-top: 30px;">&copy; ${new Date().getFullYear()} LTC Adyel Alumni Network.</p>
           </div>
         `;
 

@@ -20,7 +20,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const event = eventResult[0];
 
     const tiers = await query(`
-      SELECT * FROM ticket_tiers WHERE event_id = ?
+      SELECT * FROM event_ticket_tiers WHERE event_id = ?
     `, [eventId]);
 
     return NextResponse.json({ event, tiers });

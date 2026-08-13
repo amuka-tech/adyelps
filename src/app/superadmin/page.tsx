@@ -165,7 +165,7 @@ export default function SuperAdminDashboard() {
       <aside className="w-64 h-[calc(100vh-2rem)] bg-white m-4 rounded-[2rem] shadow-sm flex flex-col overflow-y-auto hide-scrollbar border border-gray-100">
         <div className="p-8 flex items-center gap-3">
           <div className="w-10 h-10 bg-maroon rounded-full flex items-center justify-center text-white font-bold text-xl">A</div>
-          <span className="font-bold text-xl text-gray-900">Adyel Admin</span>
+          <span className="font-bold text-xl text-gray-900">LTC Admin</span>
         </div>
 
         <div className="px-4 flex-1">
@@ -237,7 +237,7 @@ export default function SuperAdminDashboard() {
         <div className="flex justify-between items-end mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-1">Dashboard</h1>
-            <p className="text-gray-500 text-sm">Manage the Adyel Alumni Platform.</p>
+            <p className="text-gray-500 text-sm">Manage the LTC Alumni Platform.</p>
           </div>
         </div>
 

@@ -23,7 +23,7 @@ export default async function Home() {
   try {
     const { query } = await import('@/lib/db');
     latestNews = await query(`SELECT id, title, created_at, 'News' as type, SUBSTRING(content, 1, 150) as \`desc\`, image_url FROM news_articles WHERE status = 'PUBLISHED' ORDER BY created_at DESC LIMIT 2`) as any[];
-    upcomingEvents = await query(`SELECT id, title, event_date as created_at, 'Event' as type, description as \`desc\`, image_url FROM events WHERE event_date >= CURDATE() ORDER BY event_date ASC LIMIT 1`) as any[];
+    upcomingEvents = await query(`SELECT id, title, event_date as created_at, 'Event' as type, description as \`desc\`, image_url FROM events WHERE event_date >= date('now') ORDER BY event_date ASC LIMIT 1`) as any[];
   } catch (e) {
     console.error(e);
   }
@@ -47,7 +47,7 @@ export default async function Home() {
           <div className="absolute inset-0 bg-maroon/70 mix-blend-multiply z-10"></div>
           <Image 
             src="/hero-bg.png" 
-            alt="Adyel Alumni Gathering"
+            alt="LTC Alumni Gathering"
             fill
             className="object-cover object-center"
             priority
@@ -59,10 +59,10 @@ export default async function Home() {
             WELCOME HOME
           </span>
           <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-2 drop-shadow-lg tracking-tight">
-            THE GOAT
+            Adyel
           </h1>
           <p className="text-xl md:text-3xl font-medium text-pink mb-10 drop-shadow-md">
-            Greatest of All Time
+            Aged to Perfection since 2016
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto">
@@ -157,7 +157,7 @@ export default async function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Explore Our Platform</h2>
-            <p className="text-lg text-gray-600">Discover all the features we've built for the Adyel Alumni community.</p>
+            <p className="text-lg text-gray-600">Discover all the features we've built for the LTC Adyel community.</p>
             <div className="w-20 h-1 bg-maroon mx-auto mt-6 rounded-full"></div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
@@ -229,7 +229,7 @@ export default async function Home() {
                   </div>
                   <h3 className="text-xl font-bold mb-3 text-white">Business Marketplace</h3>
                   <p className="text-gray-400 mb-6 text-sm leading-relaxed">
-                    Promote your business to the entire alumni network. Discover verified member-owned businesses and unlock exclusive "Adyel Discount" codes.
+                    Promote your business to the entire alumni network. Discover verified member-owned businesses and unlock exclusive "LTC Discount" codes.
                   </p>
                 </CardContent>
               </Card>
@@ -284,16 +284,16 @@ export default async function Home() {
             <div className="w-full md:w-1/2">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Our Shared Heritage</h2>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                Adyel Day and Boarding Primary School has shaped the lives of countless individuals. 
-                Our alumni association was formed to bring us back together, celebrate our successes, 
-                and ensure future generations receive an even better foundation.
+                Adyel shaped the lives of our Adyel. 
+                Our alumni network was formed to unite us, celebrate our successes, 
+                and give back to our alma mater and community.
               </p>
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start">
                   <div className="flex-shrink-0 w-6 h-6 rounded-full bg-pink/20 flex items-center justify-center mt-1 mr-3 text-maroon">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                   </div>
-                  <span className="text-gray-700">Connecting generations of Adyelites worldwide.</span>
+                  <span className="text-gray-700">Connecting Adyel members worldwide.</span>
                 </li>
                 <li className="flex items-start">
                   <div className="flex-shrink-0 w-6 h-6 rounded-full bg-skyblue/20 flex items-center justify-center mt-1 mr-3 text-darkblue">

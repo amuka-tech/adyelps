@@ -16,7 +16,7 @@ export async function GET() {
       SELECT r.*, e.title, e.event_date, e.location, t.name as tier_name, t.price
       FROM event_registrations r
       JOIN events e ON r.event_id = e.id
-      JOIN ticket_tiers t ON r.ticket_tier_id = t.id
+      JOIN event_ticket_tiers t ON r.ticket_tier_id = t.id
       WHERE r.user_id = ?
       ORDER BY e.event_date DESC
     `, [user.id]);

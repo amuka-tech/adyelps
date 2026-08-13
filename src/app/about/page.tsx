@@ -2,16 +2,14 @@ import React from 'react';
 import Image from 'next/image';
 
 export const metadata = {
-  title: 'About Us | Adyel Alumni',
-  description: 'Learn about the rich history of Adyel Day and Boarding Primary School and the mission of our Alumni Association.',
+  title: 'About Us | LTC Adyel Alumni',
+  description: 'Learn about the history of Adyel Adyel and the mission of our Alumni Network.',
 };
 
 export default function AboutPage() {
   const leadership = [
-    { name: "John Doe", role: "President", class: "Class of 1990", img: "JD" },
-    { name: "Jane Smith", role: "Secretary General", class: "Class of 1995", img: "JS" },
-    { name: "Robert Ocen", role: "Treasurer", class: "Class of 2000", img: "RO" },
-    { name: "Sarah Auma", role: "Events Coordinator", class: "Class of 2005", img: "SA" },
+    { name: "Opio Haron Justine", role: "President", class: "Adyel", img: "OH" },
+    { name: "Aciro Sharon", role: "Vice President", class: "Adyel", img: "AS" },
   ];
 
   return (
@@ -30,15 +28,14 @@ export default function AboutPage() {
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold text-gray-900 mb-6 border-b-4 border-skyblue inline-block pb-2">Our History</h2>
             <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              Founded decades ago, Adyel Day and Boarding Primary School has been a beacon of excellence in education. 
-              Our institution started with a humble vision to provide quality education and has since grown into a premier 
-              school that has nurtured thousands of pupils. We pride ourselves on strong moral values, academic rigor, 
-              and an environment that fosters holistic growth.
+              In 2016, Adyel registered 226 learners for UACE. Out of these, 176 were male, and 50 were female. 
+              That year, seven students did not sit for the final UACE exams. After years of personal academic growth, 
+              career milestones, and life experiences, the Adyel has formed a strong Alumni network to give back 
+              to our alma mater and community in ways that matter.
             </p>
             <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              Throughout our history, Adyelites have consistently demonstrated leadership, resilience, and a commitment to 
-              excellence in various fields. The school compound holds memories of hard work, lifelong friendships, and the 
-              formative years that shaped who we are today.
+              It’s a move fueled by gratitude, responsibility, and the desire to uplift others—a true reflection of the 
+              values LTC instilled in us during our school days.
             </p>
           </div>
         </div>
@@ -48,9 +45,9 @@ export default function AboutPage() {
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">The Alumni Association</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">The Alumni Network</h2>
             <p className="text-lg text-gray-700">
-              Formed to unite former pupils, our association serves as a bridge between the past and the future.
+              Formed to unite former students, our network serves as a bridge between the past and the future.
             </p>
           </div>
           
@@ -61,7 +58,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-2xl font-bold text-maroon mb-4">Our Vision</h3>
               <p className="text-gray-600">
-                To be a strong, united, and highly impactful alumni network that significantly contributes to the continuous growth and excellence of Adyel Day and Boarding Primary School.
+                A united and compassionate community that transforms lives through education, social support, and community-driven development.
               </p>
             </div>
             
@@ -71,7 +68,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-2xl font-bold text-maroon mb-4">Our Mission</h3>
               <p className="text-gray-600">
-                To unite former pupils of Adyel, preserve our shared heritage, foster lifelong connections among members, and mobilize resources to give back to our alma mater.
+                To mobilize all members of the Adyel, partnering with stakeholders to promote education, dignity, and community wellbeing through sustainable initiatives and school support programs.
               </p>
             </div>
           </div>
@@ -84,7 +81,7 @@ export default function AboutPage() {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Executive Committee</h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Meet the dedicated team leading the Adyel Alumni Association.
+              Meet the dedicated team leading the LTC Adyel Alumni Network.
             </p>
           </div>
           

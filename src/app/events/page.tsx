@@ -31,7 +31,7 @@ export default function EventsPage() {
       
       <section className="bg-darkblue py-16 text-center text-white">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Adyel Alumni Events</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">LTC Alumni Events</h1>
           <p className="text-xl text-skyblue max-w-2xl mx-auto">
             Reunite, celebrate, and network. Book your tickets for upcoming AGMs, Galas, and Family Picnics.
           </p>

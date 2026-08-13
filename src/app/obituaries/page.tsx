@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { query } from '@/lib/db';
 
 export const metadata = {
-  title: 'Obituaries | Adyel Alumni',
-  description: 'In loving memory of the Adyel Primary School alumni and staff who have passed on.',
+  title: 'Obituaries | LTC Alumni',
+  description: 'In loving memory of the Adyel alumni and staff who have passed on.',
 };
 
 export default async function ObituariesPage() {
@@ -28,7 +28,7 @@ export default async function ObituariesPage() {
           </svg>
           <h1 className="text-4xl md:text-5xl font-bold mb-4 font-serif">In Memoriam</h1>
           <p className="text-xl text-gray-400 font-light">
-            Honoring the lives and legacies of Adyel Primary School alumni and staff who have passed on.
+            Honoring the lives and legacies of Adyel alumni and staff who have passed on.
           </p>
         </div>
       </section>

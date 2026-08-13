@@ -24,7 +24,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
 
     // Capacity Check
-    const tierResult: any = await query(`SELECT capacity FROM ticket_tiers WHERE id = ? AND event_id = ?`, [ticket_tier_id, eventId]);
+    const tierResult: any = await query(`SELECT capacity FROM event_ticket_tiers WHERE id = ? AND event_id = ?`, [ticket_tier_id, eventId]);
     if (!tierResult || tierResult.length === 0) {
       return NextResponse.json({ error: 'Invalid ticket tier' }, { status: 400 });
     }

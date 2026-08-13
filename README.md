@@ -1,107 +1,95 @@
-# Adyel Alumni Platform
+# Lira Town College Class of 2016 Alumni Network
 
-The Adyel Alumni Platform is a comprehensive, enterprise-grade social and administrative web application built specifically for the Adyel High School Alumni community.
-
-Built entirely with **Next.js**, **React 19**, **Tailwind CSS**, and **MySQL**, it functions as a single source of truth for connecting past students, managing community funds, generating revenue, and fostering professional mentorships.
+Welcome to the official web platform for the **Lira Town College (LTC) Class of 2016 Alumni Association**. 
+Under our slogan **"Aged to Perfection since 2016"**, this application serves as the central hub for our alumni to connect, give back to our alma mater, and grow together.
 
 ## 🌟 Key Features
 
-1. **Social Network & Directory**
-   - Nostalgic news feed and global directory for alumni to reconnect.
-   - Real-time Direct Messaging.
-   - Comprehensive User Profiles with notification preferences.
-
-2. **Welfare & Treasury**
-   - Transparent Welfare Ledger for viewing incoming contributions.
-   - Immutable Audit Trails to ensure financial accountability.
-   - Obituary and Condolence Boards.
-
-3. **Commerce & Jobs**
-   - E-commerce Marketplace (Adyel Shop) with integrated payment gateways (Paystack, Flutterwave, Mobile Money).
-   - Career Hub for posting and applying to exclusive jobs.
-   - Business Directory to promote alumni ventures.
-
-4. **Mentorship Hub**
-   - Intelligent matchmaking algorithm connecting young alumni with experienced mentors in their industry.
-   - Active tracking of mentorship goals and requests.
-
-5. **Super Admin Dashboard**
-   - Unified administrative portal.
-   - Real-time Financial and Engagement Analytics.
-   - Complex data grid for user role assignments and content moderation.
-
----
-
-## 🚀 Quick Start (Local Development)
-
-### 1. Prerequisites
-- Node.js (v18+)
-- MySQL (v8.0+)
-- XAMPP / MAMP (Optional, for easy MySQL local hosting)
-
-### 2. Setup the Database
-Create a MySQL database named \`adyeldb\`.
-Run all the migration scripts located in the \`scripts/\` directory to build the schema:
-\`\`\`bash
-node scripts/setup_db.js
-node scripts/seed_users.js
-node scripts/add_mentorship_tables.js
-# ... run any other relevant scripts sequentially to seed data
-\`\`\`
-
-### 3. Environment Variables
-Copy the `.env.example` file to `.env.local`:
-\`\`\`bash
-cp .env.example .env.local
-\`\`\`
-Edit `.env.local` to match your local database credentials and JWT secrets.
-
-### 4. Install & Run
-\`\`\`bash
-npm install
-npm run dev
-\`\`\`
-The platform will be live at `http://localhost:3000`.
-
----
-
-## 🐳 Production Deployment (Docker)
-
-For seamless deployment to an Ubuntu VPS, AWS EC2, or DigitalOcean Droplet, we provide Docker configuration out of the box.
-
-### 1. Prerequisites
-- Docker & Docker Compose installed on your server.
-
-### 2. Deploy
-Update the environment variables in `docker-compose.yml` with your production secrets (Strong passwords, real Payment API keys, SMTP credentials).
-
-Run the containers:
-\`\`\`bash
-docker-compose up -d --build
-\`\`\`
-
-This will spin up both the Next.js application (optimized standalone build) and a MySQL 8.0 database container. The application will be accessible on port 3000.
-
----
-
-## 🛡️ Security & Roles
-The platform utilizes stateless JWT authentication stored in HTTP-only cookies.
-Roles include:
-- `MEMBER`: Standard alumni access.
-- `ADMIN`: Can moderate content (Jobs, Businesses).
-- `TREASURER`: Can verify and approve Welfare Contributions.
-- `SUPER_ADMIN`: Can do everything, plus assign roles and view global analytics.
-
-To grant yourself Super Admin privileges locally, run:
-\`\`\`bash
-node scripts/make_admin.js
-\`\`\`
-
----
+* **Authentication & RBAC:** Secure JWT-based authentication with distinct roles (`MEMBER`, `ADMIN`, `SUPER_ADMIN`).
+* **Give Back (Fundraising):** Seamlessly donate to our flagship projects (e.g., Parents' Waiting Pavilion, Sanitary Pads Support, Education Support).
+* **News & Events:** Stay updated with school and alumni news. Includes event ticketing with simulated mobile money checkout and QR code generation.
+* **Alumni Directory:** Find and connect with fellow Class of 2016 members.
+* **Welfare:** A dedicated space for obituaries, condolences, and welfare contributions.
+* **Marketplace & Careers:** Discover alumni-owned businesses, post job openings, and request internal referrals.
+* **Governance:** Participate in alumni association polls and elections.
+* **Mentorship:** Connect with mentors in various professional fields.
 
 ## 🛠️ Technology Stack
-- **Frontend**: Next.js 14/15 App Router, React 19, Tailwind CSS.
-- **Backend**: Next.js Route Handlers (Serverless APIs).
-- **Database**: MySQL (via `mysql2` native driver).
-- **Authentication**: Custom JWT implementation (via `jose`).
-- **Payments**: Paystack API integration.
+
+* **Framework:** [Next.js](https://nextjs.org/) (App Router, Version 16+)
+* **UI/Styling:** React 19, [Tailwind CSS v4](https://tailwindcss.com/)
+* **Database:** MySQL (interfaced via `mysql2`)
+* **Security/Auth:** JWT (`jose`), Password Hashing (`bcryptjs`)
+* **Utilities:** `qrcode.react`, `html5-qrcode`
+
+## 🚀 Getting Started
+
+### Prerequisites
+* **Node.js** (v18 or higher recommended)
+* **MySQL** Server (running locally on default port `3306`)
+
+### 1. Installation
+Clone the repository and install the dependencies:
+```bash
+git clone <repository_url>
+cd AdyelPS
+npm install
+```
+
+### 2. Environment Variables
+Create a `.env` file in the root directory and configure your database and JWT secret:
+```env
+# Database Configuration
+DB_HOST=127.0.0.1
+DB_USER=root
+DB_PASS=
+DB_NAME=adyeldb
+
+# Security
+JWT_SECRET=your_super_secret_jwt_key_here
+```
+
+### 3. Database Initialization
+Ensure your MySQL server is running and you have created a database named `adyeldb`. 
+You can initialize the database schema and seed dummy data using the provided scripts in the `scripts/` directory:
+
+```bash
+# Example: Running the main seed script
+node scripts/seed_all.js
+
+# Note: You can explore other scripts like `setup_rbac.js`, `setup_events.js`, or `rebrand_projects.js` depending on your testing needs.
+```
+
+### 4. Running the Development Server
+Start the Next.js development server:
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+
+## 📁 Project Structure
+
+```
+├── public/                 # Static assets (images, icons)
+├── scripts/                # Database migration, setup, and seeding scripts
+├── src/
+│   ├── app/                # Next.js App Router pages & API routes
+│   │   ├── api/            # Backend API endpoints (Auth, Events, Projects, etc.)
+│   │   ├── dashboard/      # Protected alumni dashboard pages
+│   │   └── ...             # Public pages (Home, About, Give Back, etc.)
+│   ├── components/         # Reusable React components (UI elements, Layouts)
+│   └── lib/                # Shared utilities (Database connection, JWT helpers)
+├── package.json            # Project dependencies and scripts
+└── README.md               # This file
+```
+
+## 👥 Roles & Access
+
+* **MEMBER:** Default role upon registration. Can view directory, RSVP to events, donate, and post in the marketplace.
+* **ADMIN:** Can manage events, news, welfare updates, and view analytics.
+* **SUPER_ADMIN:** Has full control over the platform, including role management and system settings.
+
+*(To create an admin account for testing, you can run the `scripts/create_superadmin.js` script.)*
+
+## 📝 License
+This project is proprietary and built specifically for the Lira Town College Class of 2016 Alumni Association.

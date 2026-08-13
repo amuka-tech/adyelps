@@ -42,7 +42,7 @@ export default function JobBoardPage() {
       <div className="flex justify-between items-end mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-1">Career Hub</h1>
-          <p className="text-gray-500 text-sm">Exclusive job opportunities and referrals from fellow Adyelites.</p>
+          <p className="text-gray-500 text-sm">Exclusive job opportunities and referrals from fellow LTC Alumni.</p>
         </div>
         <Link href="/dashboard/careers/post" className="bg-maroon text-white font-medium text-sm px-6 py-2.5 rounded-full shadow-md shadow-maroon/20 hover:bg-maroon-dark transition-all flex items-center gap-2">
           Post a Job

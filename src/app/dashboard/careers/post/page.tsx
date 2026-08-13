@@ -57,7 +57,7 @@ export default function PostJobPage() {
 
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">Post a Job Opportunity</h1>
-        <p className="text-gray-500 text-sm">Share an opening from your company with the Adyel Alumni network.</p>
+        <p className="text-gray-500 text-sm">Share an opening from your company with the LTC Alumni network.</p>
       </div>
 
       <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden max-w-4xl">
