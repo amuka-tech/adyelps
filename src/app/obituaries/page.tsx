@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
 
 export const metadata = {
-  title: 'Obituaries | LTC Alumni',
+  title: 'Obituaries | Adyel Alumni',
   description: 'In loving memory of the Adyel alumni and staff who have passed on.',
 };
 

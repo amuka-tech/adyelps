@@ -86,7 +86,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <CardContent className="p-6 text-center">
                   <h3 className="text-lg font-bold text-maroon-dark mb-2">Member Exclusive Shopping</h3>
                   <p className="text-sm text-gray-600 mb-6">
-                    Purchasing official merchandise requires an LTC Alumni account. Registered members may also receive exclusive discounts on select items.
+                    Purchasing official merchandise requires an Adyel Alumni account. Registered members may also receive exclusive discounts on select items.
                   </p>
                   <div className="flex gap-4 justify-center">
                     <Link href="/login" className="flex-1">

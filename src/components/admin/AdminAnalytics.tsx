@@ -136,7 +136,7 @@ export default function AdminAnalytics() {
                 <div className="flex items-start">
                   <div className="w-4 h-4 rounded-full bg-[#FFCC00] mt-1 mr-3 flex-shrink-0"></div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900 mb-1">LTC Shop</p>
+                    <p className="text-sm font-bold text-gray-900 mb-1">Adyel Shop</p>
                     <p className="text-2xl font-extrabold text-gray-900">UGX {financialMetrics.breakdown.shop.toLocaleString()}</p>
                     <p className="text-xs text-gray-500 mt-1">{shopPct.toFixed(1)}% of total</p>
                   </div>

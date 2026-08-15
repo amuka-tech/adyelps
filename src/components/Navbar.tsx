@@ -67,7 +67,7 @@ export function Navbar() {
         {/* LOGO */}
         <Link href="/" className="flex items-center space-x-3 group">
           <div className="w-10 h-10 bg-maroon rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg group-hover:bg-maroon-dark transition-colors">
-            LTC
+            Adyel
           </div>
           <span className="font-black text-xl text-gray-900 tracking-tight block leading-tight">Adyel<br/><span className="text-maroon text-sm">OBs &amp; OGs</span></span>
         </Link>

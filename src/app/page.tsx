@@ -87,7 +87,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-maroon/70 mix-blend-multiply z-10"></div>
           <Image 
             src="/hero-bg.png" 
-            alt="LTC Alumni Gathering"
+            alt="Adyel Alumni Gathering"
             fill
             className="object-cover object-center"
             priority
@@ -203,7 +203,7 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Explore Our Platform</h2>
-            <p className="text-lg text-gray-600">Discover all the features we've built for the LTC Adyel community.</p>
+            <p className="text-lg text-gray-600">Discover all the features we've built for the Adyel community.</p>
             <div className="w-20 h-1 bg-maroon mx-auto mt-6 rounded-full"></div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
@@ -275,7 +275,7 @@ export default function Home() {
                   </div>
                   <h3 className="text-xl font-bold mb-3 text-white">Business Marketplace</h3>
                   <p className="text-gray-400 mb-6 text-sm leading-relaxed">
-                    Promote your business to the entire alumni network. Discover verified member-owned businesses and unlock exclusive "LTC Discount" codes.
+                    Promote your business to the entire alumni network. Discover verified member-owned businesses and unlock exclusive "Adyel Discount" codes.
                   </p>
                 </CardContent>
               </Card>

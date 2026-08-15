@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 
 export const metadata = {
-  title: 'About Us | LTC Adyel Alumni',
+  title: 'About Us | Adyel Alumni',
   description: 'Learn about the history of Adyel Adyel and the mission of our Alumni Network.',
 };
 
@@ -35,7 +35,7 @@ export default function AboutPage() {
             </p>
             <p className="text-lg text-gray-700 leading-relaxed mb-6">
               It’s a move fueled by gratitude, responsibility, and the desire to uplift others—a true reflection of the 
-              values LTC instilled in us during our school days.
+              values Adyel instilled in us during our school days.
             </p>
           </div>
         </div>
@@ -81,7 +81,7 @@ export default function AboutPage() {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Executive Committee</h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Meet the dedicated team leading the LTC Adyel Alumni Network.
+              Meet the dedicated team leading the Adyel Alumni Network.
             </p>
           </div>
           

@@ -31,7 +31,7 @@ export default function MemberNewsFeed() {
       
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Member News Hub</h1>
-        <p className="text-gray-500">Stay up to date with the latest from the LTC Alumni community.</p>
+        <p className="text-gray-500">Stay up to date with the latest from the Adyel Alumni community.</p>
       </div>
 
       {articles.length === 0 ? (

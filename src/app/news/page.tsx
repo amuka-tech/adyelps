@@ -90,7 +90,7 @@ export default function NewsPage() {
       <section className="bg-darkblue py-16 text-white mt-auto">
         <div className="container mx-auto px-4 text-center max-w-3xl">
           <h2 className="text-3xl font-bold mb-4">Never Miss an Update</h2>
-          <p className="text-skyblue/80 mb-8">Subscribe to the LTC Alumni newsletter to get the latest news delivered straight to your inbox.</p>
+          <p className="text-skyblue/80 mb-8">Subscribe to the Adyel Alumni newsletter to get the latest news delivered straight to your inbox.</p>
           <form className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto" onSubmit={(e) => { e.preventDefault(); alert('Subscribed successfully!'); }}>
             <input 
               type="email" 

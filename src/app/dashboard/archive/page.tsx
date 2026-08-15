@@ -102,8 +102,8 @@ export default function ArchivePage() {
               </div>
               <h3 className="text-2xl font-bold mb-4">The School Anthem</h3>
               <div className="space-y-4 text-white/90 text-sm leading-relaxed italic border-l-4 border-pink pl-4">
-                <p>Oh LTC, our beloved school,<br/>The fountain of knowledge and truth.<br/>We sing your praises loud and clear,<br/>For shaping the minds of our youth.</p>
-                <p>Forward we march with heads held high,<br/>With discipline, hard work, and grace.<br/>Once an LTC Alumnus, always an LTC Alumnus,<br/>We make the world a better place!</p>
+                <p>Oh Adyel, our beloved school,<br/>The fountain of knowledge and truth.<br/>We sing your praises loud and clear,<br/>For shaping the minds of our youth.</p>
+                <p>Forward we march with heads held high,<br/>With discipline, hard work, and grace.<br/>Once an Adyelite, always an Adyelite,<br/>We make the world a better place!</p>
               </div>
               <button onClick={() => showToast("Audio playback coming soon!", "info")} className="mt-8 w-full bg-white text-maroon font-bold py-3 rounded-xl shadow-sm hover:bg-gray-50 transition-colors">Play Audio</button>
             </div>

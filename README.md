@@ -1,6 +1,6 @@
-# Lira Town College Class of 2016 Alumni Network
+# Adyel Primary School Class of 2016 Alumni Network
 
-Welcome to the official web platform for the **Lira Town College (LTC) Class of 2016 Alumni Association**. 
+Welcome to the official web platform for the **Adyel Primary School Class of 2016 Alumni Association**. 
 Under our slogan **"Aged to Perfection since 2016"**, this application serves as the central hub for our alumni to connect, give back to our alma mater, and grow together.
 
 ## 🌟 Key Features
@@ -93,4 +93,4 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to view the 
 *(To create an admin account for testing, you can run the `scripts/create_superadmin.js` script.)*
 
 ## 📝 License
-This project is proprietary and built specifically for the Lira Town College Class of 2016 Alumni Association.
+This project is proprietary and built specifically for the Adyel Primary School Class of 2016 Alumni Association.

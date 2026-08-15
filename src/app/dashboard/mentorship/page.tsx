@@ -138,7 +138,7 @@ export default function MentorshipHub() {
       {/* HEADER */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-1">E-Learning & Mentorship</h1>
-        <p className="text-gray-500 text-sm">Find a mentor to guide your career, or become one to give back to the LTC community.</p>
+        <p className="text-gray-500 text-sm">Find a mentor to guide your career, or become one to give back to the Adyel community.</p>
       </div>
 
       {/* TABS */}

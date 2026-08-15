@@ -20,7 +20,7 @@ export function Footer() {
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-maroon font-bold text-xl">
                 A
               </div>
-              <span className="font-bold text-xl text-white">LTC Adyel</span>
+              <span className="font-bold text-xl text-white">Adyel</span>
             </Link>
             <p className="text-gray-300 text-sm leading-relaxed mb-6">
               Uniting the OBs & OGs of Adyel, preserving our shared heritage, and giving back to our alma mater.

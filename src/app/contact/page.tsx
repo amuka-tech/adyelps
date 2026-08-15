@@ -3,7 +3,7 @@ import { Button } from '@/components/Button';
 import { Card, CardContent } from '@/components/Card';
 
 export const metadata = {
-  title: 'Contact Us | LTC Alumni',
+  title: 'Contact Us | Adyel Alumni',
   description: 'Get in touch with the Adyel Adyel executive committee.',
 };
 
