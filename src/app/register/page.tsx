@@ -1,205 +1,95 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/Card';
-import { Button } from '@/components/Button';
-import { useRouter } from 'next/navigation';
+import React from 'react';
+import { Card, CardContent, CardHeader } from '@/components/Card';
+import { RegistrationForm } from '@/components/RegistrationForm';
 import Link from 'next/link';
 
 export default function RegisterPage() {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    classYear: '',
-    profession: '',
-    phone: '',
-  });
-  
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const { createClient } = await import('@/utils/supabase/client');
-      const supabase = createClient();
-
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            classYear: formData.classYear,
-            profession: formData.profession,
-            phone: formData.phone,
-          }
-        }
-      });
-
-      if (signUpError) {
-        setError(signUpError.message);
-        return;
-      }
-
-      setSuccess('Registration successful! Please log in.');
-      setFormData({
-        firstName: '', lastName: '', email: '', password: '', classYear: '', profession: '', phone: ''
-      });
-      // Optionally, redirect to login page after a delay
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
-
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred. Please try again.');
-    } finally {
-      setLoading(false);
+  const tiers = [
+    {
+      name: "Ordinary Member",
+      fee: "UGX 50,000 / year",
+      benefits: ["Access to Alumni Directory", "Monthly Newsletter", "Voting Rights at AGM"]
+    },
+    {
+      name: "Life Member",
+      fee: "UGX 1,000,000 (One-time)",
+      benefits: ["All Ordinary benefits", "Lifetime recognition", "VIP Seating at Annual Events", "Special Lapel Pin"]
+    },
+    {
+      name: "Honorary Member",
+      fee: "By Nomination",
+      benefits: ["Awarded to individuals who have made extraordinary contributions to the school or society."]
     }
-  };
+  ];
 
   return (
-    <div className="flex flex-col w-full bg-gray-50 min-h-[calc(100vh-80px)] items-center justify-center py-12">
-      <div className="w-full max-w-2xl px-4">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-maroon rounded-full flex items-center justify-center text-white font-bold text-3xl mx-auto mb-4">
+    <div className="flex flex-col w-full bg-gray-50 min-h-[calc(100vh-80px)] py-12">
+      <div className="container mx-auto px-4">
+        
+        <div className="text-center mb-10">
+          <div className="w-16 h-16 bg-maroon rounded-full flex items-center justify-center text-white font-bold text-3xl mx-auto mb-4 shadow-lg shadow-maroon/20">
             A
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Create an Account</h1>
           <p className="text-gray-600 mt-2">Join the Alumni Network today</p>
         </div>
 
-        <Card className="shadow-lg border-0">
-          <CardContent className="p-8">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm font-medium">
-                {error}
-              </div>
-            )}
-            
-            {success && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 text-sm font-medium">
-                {success}
-              </div>
-            )}
-            
-            <form onSubmit={handleRegister} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">First Name *</label>
-                  <input 
-                    type="text" 
-                    name="firstName"
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-maroon focus:border-maroon bg-white" 
-                    placeholder="John"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                  />
+        <div className="flex flex-col lg:flex-row gap-12 max-w-6xl mx-auto">
+          
+          {/* Registration Form (Left Column) */}
+          <div className="w-full lg:w-1/2">
+            <Card className="shadow-xl border-0 bg-white">
+              <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-8">
+                <h2 className="text-2xl font-bold text-gray-900">Registration Form</h2>
+                <p className="text-gray-500 text-sm mt-1">Please fill out your details to join the network.</p>
+              </CardHeader>
+              <CardContent className="p-8">
+                <RegistrationForm />
+                <div className="mt-8 text-center text-sm text-gray-600 border-t border-gray-100 pt-6">
+                  Already have an account? <Link href="/login" className="text-maroon font-bold hover:underline">Log In</Link>
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name *</label>
-                  <input 
-                    type="text" 
-                    name="lastName"
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-maroon focus:border-maroon bg-white" 
-                    placeholder="Doe"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                  />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Membership Categories (Right Column) */}
+          <div className="w-full lg:w-1/2">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 px-2">Membership Categories</h2>
+            <div className="space-y-6">
+              {tiers.map((tier, idx) => (
+                <div key={idx} className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-maroon/30 transition-colors">
+                  <div>
+                    <h3 className="text-xl font-bold text-maroon mb-1">{tier.name}</h3>
+                    <p className="text-gray-700 font-medium mb-4">{tier.fee}</p>
+                    <ul className="space-y-2">
+                      {tier.benefits.map((benefit, i) => (
+                        <li key={i} className="flex items-start text-sm text-gray-600">
+                          <svg className="w-5 h-5 text-pink flex-shrink-0 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                          </svg>
+                          <span className="leading-tight pt-0.5">{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address *</label>
-                <input 
-                  type="email" 
-                  name="email"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-maroon focus:border-maroon bg-white" 
-                  placeholder="john@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Password *</label>
-                <input 
-                  type="password" 
-                  name="password"
-                  required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-maroon focus:border-maroon bg-white" 
-                  placeholder="••••••••"
-                  value={formData.password}
-                  onChange={handleChange}
-                  minLength={6}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Class Year</label>
-                  <input 
-                    type="text" 
-                    name="classYear"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-maroon focus:border-maroon bg-white" 
-                    placeholder="e.g. 2015"
-                    value={formData.classYear}
-                    onChange={handleChange}
-                  />
-                </div>
-                
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Profession</label>
-                  <input 
-                    type="text" 
-                    name="profession"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-maroon focus:border-maroon bg-white" 
-                    placeholder="e.g. Software Engineer"
-                    value={formData.profession}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-                <input 
-                  type="tel" 
-                  name="phone"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-maroon focus:border-maroon bg-white" 
-                  placeholder="+256..."
-                  value={formData.phone}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <Button type="submit" size="lg" className="w-full shadow-md mt-2" disabled={loading}>
-                {loading ? 'Creating Account...' : 'Register'}
-              </Button>
-            </form>
-            
-            <div className="mt-8 text-center text-sm text-gray-600">
-              Already have an account? <Link href="/login" className="text-maroon font-bold hover:underline">Log In</Link>
+              ))}
             </div>
-          </CardContent>
-        </Card>
+            
+            <div className="mt-8 bg-blue-50 p-6 rounded-2xl border border-blue-100 text-blue-900">
+              <h3 className="font-bold mb-2 flex items-center">
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Why Join?
+              </h3>
+              <p className="text-sm opacity-90 leading-relaxed">
+                Registered members get exclusive access to our searchable alumni directory, the ability to promote businesses in the marketplace, post job openings, and receive special discounts at the Alumni Shop.
+              </p>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   );
