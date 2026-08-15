@@ -1,23 +1,25 @@
 "use client";
 
 import React, { useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
 
 export default function AdminRates({ rates, fetchData }: { rates: any[], fetchData: () => void }) {
   const [rateForm, setRateForm] = useState({ name: '', rate_type: 'PERCENTAGE', amount: '' });
 
   const handleCreateRate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch('/api/welfare/deduction-rates', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify({ ...rateForm, amount: parseFloat(rateForm.amount) }) 
+    const supabase = createClient();
+    const { error } = await supabase.from('deduction_rates').insert({ 
+      name: rateForm.name, 
+      rate_type: rateForm.rate_type, 
+      amount: parseFloat(rateForm.amount) 
     });
-    if (res.ok) { 
+    if (!error) { 
       alert('Tax Rate added!'); 
       setRateForm({ name: '', rate_type: 'PERCENTAGE', amount: '' }); 
       fetchData(); 
     } else {
-      alert((await res.json()).error);
+      alert(error.message);
     }
   };
 

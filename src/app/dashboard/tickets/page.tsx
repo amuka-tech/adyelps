@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
+import { createClient } from '@/utils/supabase/client';
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -12,13 +13,17 @@ export default function TicketsPage() {
   useEffect(() => {
     async function fetchData() {
       try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        
         const [meRes, ticketsRes] = await Promise.all([
-          fetch('/api/auth/me'),
-          fetch('/api/profile/tickets').catch(() => ({ ok: false, json: () => [] }))
+          supabase.from('users').select('*').eq('id', session.user.id).single(),
+          supabase.from('event_registrations').select('*, events(*), ticket_tiers(*)').eq('user_id', session.user.id)
         ]);
 
-        if (meRes.ok) setUser((await meRes.json()).user);
-        if (ticketsRes.ok) setTickets((await ticketsRes.json()).tickets || []);
+        if (meRes.data) setUser(meRes.data);
+        if (ticketsRes.data) setTickets(ticketsRes.data);
       } catch (error) {
         console.error("Failed to fetch tickets", error);
       } finally {

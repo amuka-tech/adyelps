@@ -4,19 +4,27 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader } from '@/components/Card';
 import { Button } from '@/components/Button';
+import { createClient } from '@/utils/supabase/client';
 
 export default function OrderHistoryPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/shop/orders')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data && data.orders) setOrders(data.orders);
+    const fetchOrders = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const { data } = await supabase.from('shop_orders').select('*, items:shop_order_items(*, product:shop_products(*))').eq('user_id', session.user.id);
+        if (data) setOrders(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+    fetchOrders();
   }, []);
 
   const getStatusColor = (status: string) => {

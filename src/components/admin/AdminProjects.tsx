@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
 
 export default function AdminProjects({ projects, fetchData }: { projects: any[], fetchData: () => void }) {
   const [projectForm, setProjectForm] = useState({ title: '', description: '', goal_amount: '', image_url: '', deadline: '' });
@@ -8,33 +9,38 @@ export default function AdminProjects({ projects, fetchData }: { projects: any[]
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch('/api/projects', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify({ ...projectForm, goal_amount: parseFloat(projectForm.goal_amount) }) 
+    const supabase = createClient();
+    const { error } = await supabase.from('projects').insert({ 
+      title: projectForm.title,
+      description: projectForm.description,
+      goal_amount: parseFloat(projectForm.goal_amount),
+      image_url: projectForm.image_url || null,
+      deadline: projectForm.deadline || null
     });
-    if (res.ok) { 
+    if (!error) { 
       alert('Project created!'); 
       setProjectForm({ title: '', description: '', goal_amount: '', image_url: '', deadline: '' }); 
       fetchData(); 
     } else {
-      alert((await res.json()).error);
+      alert(error.message);
     }
   };
 
   const handlePostUpdate = async (e: React.FormEvent, projectId: number) => {
     e.preventDefault();
-    const res = await fetch(`/api/admin/projects/${projectId}/updates`, { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify(updateForm) 
+    const supabase = createClient();
+    const { error } = await supabase.from('project_updates').insert({
+      project_id: projectId,
+      title: updateForm.title,
+      description: updateForm.description,
+      image_url: updateForm.image_url || null
     });
-    if (res.ok) { 
+    if (!error) { 
       alert('Project update posted!'); 
       setUpdateForm({ title: '', description: '', image_url: '', project_id: null }); 
       fetchData(); 
     } else {
-      alert((await res.json()).error);
+      alert(error.message);
     }
   };
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
+import { createClient } from '@/utils/supabase/client';
 
 export default function OverviewPage() {
   const [user, setUser] = useState<any>(null);
@@ -12,13 +13,28 @@ export default function OverviewPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const [meRes, ticketsRes] = await Promise.all([
-        fetch('/api/auth/me'),
-        fetch('/api/profile/tickets').catch(() => ({ ok: false, json: () => [] }))
-      ]);
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
 
-      if (meRes.ok) setUser((await meRes.json()).user);
-      if (ticketsRes && ticketsRes.ok) setTickets((await ticketsRes.json()).tickets || []);
+      const { data: userData } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+        
+      if (userData) {
+        setUser(userData);
+      }
+
+      const { data: ticketsData } = await supabase
+        .from('event_registrations')
+        .select('*, events(*)')
+        .eq('user_id', session.user.id);
+        
+      if (ticketsData) {
+        setTickets(ticketsData);
+      }
     }
     fetchData();
   }, []);

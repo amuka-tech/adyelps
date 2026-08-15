@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/Card';
+import { createClient } from '@/utils/supabase/client';
 
 export default function GiveBackPage() {
   const [projects, setProjects] = useState<any[]>([]);
@@ -11,10 +12,10 @@ export default function GiveBackPage() {
   useEffect(() => {
     async function fetchProjects() {
       try {
-        const res = await fetch('/api/projects');
-        if (res.ok) {
-          const data = await res.json();
-          setProjects(data.projects);
+        const supabase = createClient();
+        const { data } = await supabase.from('projects').select('*').eq('status', 'ACTIVE');
+        if (data) {
+          setProjects(data);
         }
       } catch (err) {
         console.error(err);

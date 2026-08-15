@@ -16,22 +16,21 @@ export default function ForgotPasswordPage() {
     setStatus({ type: '', message: '' });
 
     try {
-      const res = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        setStatus({ type: 'success', message: data.message });
-        setEmail('');
+      if (error) {
+        setStatus({ type: 'error', message: error.message });
       } else {
-        setStatus({ type: 'error', message: data.error || 'Failed to send reset link.' });
+        setStatus({ type: 'success', message: 'If an account exists, a password reset link has been sent to your email.' });
+        setEmail('');
       }
-    } catch (err) {
-      setStatus({ type: 'error', message: 'An unexpected error occurred. Please try again.' });
+    } catch (err: any) {
+      setStatus({ type: 'error', message: err.message || 'An unexpected error occurred. Please try again.' });
     } finally {
       setLoading(false);
     }

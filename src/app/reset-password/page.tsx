@@ -13,15 +13,28 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Extract token from URL
-    const searchParams = new URLSearchParams(window.location.search);
-    const urlToken = searchParams.get('token');
-    if (urlToken) {
-      setToken(urlToken);
-    } else {
-      setStatus({ type: 'error', message: 'No reset token found in URL.' });
-    }
+    // The Supabase JS client automatically handles the #access_token in the URL hash
+    // and sets up a temporary session. We don't need to manually extract a token.
+    // We just wait for the component to mount.
+    const checkSession = async () => {
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // Sometimes it takes a moment to process the hash
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+          if (event === 'PASSWORD_RECOVERY') {
+            setHasSession(true);
+          }
+        });
+      } else {
+        setHasSession(true);
+      }
+    };
+    checkSession();
   }, []);
+
+  const [hasSession, setHasSession] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,30 +53,27 @@ export default function ResetPasswordPage() {
     setStatus({ type: '', message: '' });
 
     try {
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, newPassword }),
-      });
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
 
-      const data = await res.json();
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
 
-      if (res.ok) {
-        setStatus({ type: 'success', message: data.message });
+      if (!error) {
+        setStatus({ type: 'success', message: 'Password has been reset successfully.' });
         setNewPassword('');
         setConfirmPassword('');
       } else {
-        setStatus({ type: 'error', message: data.error || 'Failed to reset password.' });
+        setStatus({ type: 'error', message: error.message });
       }
-    } catch (err) {
-      setStatus({ type: 'error', message: 'An unexpected error occurred. Please try again.' });
+    } catch (err: any) {
+      setStatus({ type: 'error', message: err.message || 'An unexpected error occurred. Please try again.' });
     } finally {
       setLoading(false);
     }
   };
 
-  if (!token && !status.message) {
-    return null; // Avoid flashing the form if there's no token yet
+  if (!hasSession && !status.message) {
+    return null; // Avoid flashing the form before session is established
   }
 
   return (
@@ -92,7 +102,7 @@ export default function ResetPasswordPage() {
               </div>
             )}
             
-            {status.type !== 'success' && token && (
+            {status.type !== 'success' && hasSession && (
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">New Password</label>

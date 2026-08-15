@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { createClient } from '@/utils/supabase/client';
 
 export default function AdminSettings({ settingsData, fetchData }: { settingsData: any, fetchData: () => void }) {
   const [settingsForm, setSettingsForm] = useState({
@@ -35,12 +36,9 @@ export default function AdminSettings({ settingsData, fetchData }: { settingsDat
 
   const handleUpdateSettings = async (e: React.FormEvent) => {
     e.preventDefault();
+    const supabase = createClient();
     for (const [key, value] of Object.entries(settingsForm)) {
-      await fetch('/api/superadmin/settings', { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ key, value }) 
-      });
+      await supabase.from('system_settings').upsert({ setting_key: key, setting_value: value }, { onConflict: 'setting_key' });
     }
     alert('Settings updated successfully!');
     fetchData();

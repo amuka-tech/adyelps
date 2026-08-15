@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { createClient } from '@/utils/supabase/client';
 
 export default function GovernancePage() {
   const [loading, setLoading] = useState(true);
@@ -18,38 +19,44 @@ export default function GovernancePage() {
 
   const fetchPolls = async () => {
     try {
-      const res = await fetch('/api/governance/polls');
-      if (res.ok) setPolls((await res.json()).polls);
-    } catch(e) {}
+      const supabase = createClient();
+      const { data } = await supabase.from('polls').select('*').order('created_at', { ascending: false });
+      if (data) setPolls(data);
+    } catch (err) { console.error(err); }
   };
 
   const fetchDocuments = async () => {
     try {
-      const res = await fetch('/api/governance/documents');
-      if (res.ok) setDocuments((await res.json()).documents);
-    } catch(e) {}
+      const supabase = createClient();
+      const { data } = await supabase.from('documents').select('*').order('created_at', { ascending: false });
+      if (data) setDocuments(data);
+    } catch (err) { console.error(err); }
   };
 
-  const handleVote = async (pollId: string, optionId: string) => {
+  const handleVote = async (pollId: number, optionId: number) => {
     if (!confirm("Are you sure? You cannot change your vote after casting it.")) return;
     
-    setVotingOn(pollId);
+    setVotingOn(String(pollId));
     try {
-      const res = await fetch(`/api/governance/polls/${pollId}/vote`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ poll_option_id: optionId })
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      
+      const { error } = await supabase.from('poll_votes').insert({
+        poll_id: pollId,
+        user_id: session.user.id,
+        poll_option_id: optionId
       });
       
-      const data = await res.json();
-      if (res.ok) {
-        alert(data.message);
-        fetchPolls(); // Refresh tallies
+      if (!error) {
+        alert("Vote cast successfully!");
+        fetchPolls(); // refresh polls to show updated counts/status
       } else {
-        alert(data.error || "Failed to cast vote");
+        alert(error.message || "Failed to vote.");
       }
     } catch (err) {
-      alert("Network error.");
+      console.error(err);
+      alert("Network error while voting.");
     } finally {
       setVotingOn(null);
     }

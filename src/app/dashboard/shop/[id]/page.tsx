@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/Button';
 import { Card, CardContent } from '@/components/Card';
+import { createClient } from '@/utils/supabase/client';
 
 export default function MemberProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -15,13 +16,18 @@ export default function MemberProductDetailPage({ params }: { params: Promise<{ 
   const [addingToCart, setAddingToCart] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/public/shop/${id}`)
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data && data.product) setProduct(data.product);
+    const fetchProduct = async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase.from('shop_products').select('*').eq('id', id).single();
+        if (data) setProduct(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+    fetchProduct();
   }, [id]);
 
   const addToCart = () => {

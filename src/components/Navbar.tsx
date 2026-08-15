@@ -14,10 +14,18 @@ export function Navbar() {
   useEffect(() => {
     async function checkSession() {
       try {
-        const res = await fetch('/api/auth/me');
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('id, first_name, last_name, email, role')
+            .eq('id', session.user.id)
+            .single();
+          if (userData) {
+            setUser({ ...userData, firstName: userData.first_name, lastName: userData.last_name });
+          }
         }
       } catch (error) {
         console.error("Failed to fetch session", error);
@@ -29,9 +37,12 @@ export function Navbar() {
   }, []);
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    const { createClient } = await import('@/utils/supabase/client');
+    const supabase = createClient();
+    await supabase.auth.signOut();
     window.location.href = '/login';
   };
+
 
 
   const publicNavItems = [

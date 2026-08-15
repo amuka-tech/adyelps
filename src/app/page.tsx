@@ -1,14 +1,17 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/Button';
 import { Card, CardContent } from '@/components/Card';
-import { cookies } from 'next/headers';
+import { createClient } from '@/utils/supabase/client';
 
-export default async function Home() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('auth_token')?.value;
-  const isLoggedIn = !!token;
+export default function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [newsEvents, setNewsEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
   const stats = [
     { label: "Years Since Founding", value: "40+" },
@@ -16,61 +19,63 @@ export default async function Home() {
     { label: "Projects Completed", value: "15" }
   ];
 
-  // Fetch dynamic content
-  let latestNews: any[] = [];
-  let upcomingEvents: any[] = [];
-  
-  try {
-    const { createClient } = await import('@/utils/supabase/server');
-    const supabase = createClient(cookieStore);
-
-    const { data: newsData } = await supabase
-      .from('news_articles')
-      .select('id, title, created_at, content, image_url')
-      .eq('status', 'PUBLISHED')
-      .order('created_at', { ascending: false })
-      .limit(2);
-      
-    if (newsData) {
-      latestNews = newsData.map(item => ({
-        id: item.id,
-        title: item.title,
-        created_at: item.created_at,
-        type: 'News',
-        desc: item.content ? item.content.substring(0, 150) : '',
-        image_url: item.image_url
-      }));
-    }
-
-    const { data: eventsData } = await supabase
-      .from('events')
-      .select('id, title, event_date, description, image_url')
-      .gte('event_date', new Date().toISOString())
-      .order('event_date', { ascending: true })
-      .limit(1);
-
-    if (eventsData) {
-      upcomingEvents = eventsData.map(item => ({
-        id: item.id,
-        title: item.title,
-        created_at: item.event_date,
-        type: 'Event',
-        desc: item.description,
-        image_url: item.image_url
-      }));
-    }
-  } catch (e) {
-    console.error(e);
-  }
-
-  // Fallbacks if empty
   const defaultItems = [
     { type: "Event", title: "Annual Family Picnic 2026", created_at: "2026-08-15T00:00:00.000Z", desc: "Join us for a fun-filled day with family and old friends at the school playground.", id: "1" },
     { type: "News", title: "New Computer Lab Commissioned", created_at: "2026-05-20T00:00:00.000Z", desc: "Thanks to alumni contributions, a new state-of-the-art lab is now open.", id: "1" },
     { type: "Event", title: "AGM & Elections 2026", created_at: "2026-12-05T00:00:00.000Z", desc: "Annual General Meeting to elect the new Executive Committee.", id: "2" }
   ];
 
-  const newsEvents = [...upcomingEvents, ...latestNews].slice(0, 3);
+  useEffect(() => {
+    async function checkAuthAndFetchData() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setIsLoggedIn(!!session);
+
+        const { data: newsData } = await supabase
+          .from('news_articles')
+          .select('id, title, created_at, content, image_url')
+          .eq('status', 'PUBLISHED')
+          .order('created_at', { ascending: false })
+          .limit(2);
+
+        const latestNews = newsData ? newsData.map(item => ({
+          id: item.id,
+          title: item.title,
+          created_at: item.created_at,
+          type: 'News',
+          desc: item.content ? item.content.substring(0, 150) : '',
+          image_url: item.image_url
+        })) : [];
+
+        const { data: eventsData } = await supabase
+          .from('events')
+          .select('id, title, event_date, description, image_url')
+          .gte('event_date', new Date().toISOString())
+          .order('event_date', { ascending: true })
+          .limit(1);
+
+        const upcomingEvents = eventsData ? eventsData.map(item => ({
+          id: item.id,
+          title: item.title,
+          created_at: item.event_date,
+          type: 'Event',
+          desc: item.description,
+          image_url: item.image_url
+        })) : [];
+
+        const combined = [...upcomingEvents, ...latestNews].slice(0, 3);
+        setNewsEvents(combined.length > 0 ? combined : defaultItems);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setNewsEvents(defaultItems);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    checkAuthAndFetchData();
+  }, []);
+
   const displayItems = newsEvents.length > 0 ? newsEvents : defaultItems;
 
   return (
@@ -149,33 +154,39 @@ export default async function Home() {
             <div className="w-20 h-1 bg-pink mx-auto mt-6 rounded-full"></div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {displayItems.map((item, idx) => (
-              <Card key={idx} className="h-full flex flex-col group overflow-hidden border-gray-100 shadow-sm hover:shadow-lg transition-all">
-                <div className="h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center">
-                  {item.image_url ? (
-                    <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : (
-                    <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjwvc3ZnPg==')]"></div>
-                  )}
-                  <div className={`absolute top-4 left-4 text-xs font-bold px-3 py-1 rounded-full shadow-sm ${item.type === 'News' ? 'bg-white text-maroon' : 'bg-maroon text-white'}`}>
-                    {item.type}
+          {loading ? (
+             <div className="flex justify-center items-center h-48">
+               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-maroon"></div>
+             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {displayItems.map((item, idx) => (
+                <Card key={idx} className="h-full flex flex-col group overflow-hidden border-gray-100 shadow-sm hover:shadow-lg transition-all">
+                  <div className="h-48 bg-gray-100 relative overflow-hidden flex items-center justify-center">
+                    {item.image_url ? (
+                      <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjwvc3ZnPg==')]"></div>
+                    )}
+                    <div className={`absolute top-4 left-4 text-xs font-bold px-3 py-1 rounded-full shadow-sm ${item.type === 'News' ? 'bg-white text-maroon' : 'bg-maroon text-white'}`}>
+                      {item.type}
+                    </div>
                   </div>
-                </div>
-                <CardContent className="flex-1 flex flex-col p-6">
-                  <div className="text-xs text-gray-500 mb-2 font-medium">{new Date(item.created_at).toLocaleDateString()}</div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-maroon transition-colors line-clamp-2">{item.title}</h3>
-                  <p className="text-gray-600 text-sm mb-6 flex-1 line-clamp-3">{item.desc}</p>
-                  <Link href={`/news-events`} className="text-maroon font-bold text-sm flex items-center hover:text-pink transition-colors w-fit mt-auto">
-                    View Details 
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </Link>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  <CardContent className="flex-1 flex flex-col p-6">
+                    <div className="text-xs text-gray-500 mb-2 font-medium">{new Date(item.created_at).toLocaleDateString()}</div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-maroon transition-colors line-clamp-2">{item.title}</h3>
+                    <p className="text-gray-600 text-sm mb-6 flex-1 line-clamp-3">{item.desc}</p>
+                    <Link href={`/news-events`} className="text-maroon font-bold text-sm flex items-center hover:text-pink transition-colors w-fit mt-auto">
+                      View Details 
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                      </svg>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
           
           <div className="text-center mt-12 flex justify-center gap-4">
             <Link href="/news-events">

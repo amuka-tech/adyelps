@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function ObituaryDetailsPage() {
   const params = useParams();
@@ -27,13 +28,24 @@ export default function ObituaryDetailsPage() {
 
   const fetchData = async () => {
     try {
-      const [obitRes, ledgerRes] = await Promise.all([
-        fetch(`/api/welfare/obituaries/${obituaryId}`),
-        fetch(`/api/welfare/ledger/${obituaryId}`)
+      const supabase = createClient();
+      const [obitRes, condRes, contrRes] = await Promise.all([
+        supabase.from('obituaries').select('*').eq('id', obituaryId).single(),
+        supabase.from('condolences').select('*').eq('obituary_id', obituaryId),
+        supabase.from('contributions').select('*').eq('obituary_id', obituaryId)
       ]);
 
-      if (obitRes.ok) setData(await obitRes.json());
-      if (ledgerRes.ok) setLedger((await ledgerRes.json()).ledger);
+      if (obitRes.data) {
+        setData({ obituary: obitRes.data, condolences: condRes.data || [] });
+      }
+      
+      if (contrRes.data) {
+        const totalGross = contrRes.data.reduce((acc: number, curr: any) => acc + Number(curr.amount_gross || curr.amount || 0), 0);
+        setLedger({ 
+          totalGross, totalDeductions: 0, netAmount: totalGross, totalDisbursed: 0, 
+          contributionLog: contrRes.data 
+        });
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -44,23 +56,28 @@ export default function ObituaryDetailsPage() {
   const handlePostCondolence = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    const res = await fetch(`/api/welfare/obituaries/${obituaryId}/condolences`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: condolenceMsg })
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      alert("Please log in to post a condolence.");
+      router.push('/login');
+      return;
+    }
+    
+    const { error } = await supabase.from('condolences').insert({
+      obituary_id: obituaryId,
+      user_id: session.user.id,
+      message: condolenceMsg,
+      first_name: session.user.user_metadata?.first_name || '',
+      last_name: session.user.user_metadata?.last_name || ''
     });
     setSubmitting(false);
     
-    if (res.ok) {
+    if (!error) {
       setCondolenceMsg("");
       fetchData(); // Refresh list
     } else {
-      if (res.status === 401) {
-        alert("Please log in to post a condolence.");
-        router.push('/login');
-      } else {
-        alert("Failed to post condolence.");
-      }
+      alert("Failed to post condolence.");
     }
   };
 

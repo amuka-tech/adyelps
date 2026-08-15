@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/Card';
 import { Button } from '@/components/Button';
+import { createClient } from '@/utils/supabase/client';
 
 export default function JobDetailsPage() {
   const params = useParams();
@@ -20,13 +21,17 @@ export default function JobDetailsPage() {
   useEffect(() => {
     async function fetchData() {
       try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        
         const [jobRes, sessionRes] = await Promise.all([
-          fetch(`/api/careers/jobs/${params.id}`),
-          fetch('/api/auth/me')
+          supabase.from('jobs').select('*').eq('id', params.id).single(),
+          supabase.from('users').select('*').eq('id', session.user.id).single()
         ]);
         
-        if (jobRes.ok) setJob((await jobRes.json()).job);
-        if (sessionRes.ok) setCurrentUser((await sessionRes.json()).user);
+        if (jobRes.data) setJob(jobRes.data);
+        if (sessionRes.data) setCurrentUser(sessionRes.data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -40,18 +45,22 @@ export default function JobDetailsPage() {
     e.preventDefault();
     setRequesting(true);
     try {
-      const res = await fetch(`/api/careers/jobs/${params.id}/referral`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: referralMessage })
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      
+      const { error } = await supabase.from('referral_requests').insert({
+        job_id: params.id,
+        requester_id: session.user.id,
+        message: referralMessage,
+        status: 'PENDING'
       });
       
-      if (res.ok) {
+      if (!error) {
         setShowReferralModal(false);
         alert("Referral request sent successfully! The job poster has been notified.");
       } else {
-        const data = await res.json();
-        alert(data.error || "Failed to request referral");
+        alert(error.message || "Failed to request referral");
       }
     } catch (err) {
       console.error(err);

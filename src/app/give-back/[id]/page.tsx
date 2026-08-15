@@ -18,12 +18,21 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
   const fetchProjectData = async () => {
     try {
-      const res = await fetch(`/api/projects/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setProject(data.project);
-        setDonations(data.donations);
-      }
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
+      const { data: projectData } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('id', id)
+        .single();
+      if (projectData) setProject(projectData);
+
+      const { data: donationsData } = await supabase
+        .from('project_donations')
+        .select('*, users(first_name, last_name)')
+        .eq('project_id', id)
+        .order('created_at', { ascending: false });
+      if (donationsData) setDonations(donationsData);
     } catch (err) {
       console.error(err);
     } finally {
@@ -33,11 +42,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
   useEffect(() => {
     fetchProjectData();
-    // Check if user is logged in
-    fetch('/api/auth/me')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => data && setSession(data.user))
-      .catch(() => {});
+    import('@/utils/supabase/client').then(({ createClient }) => {
+      const supabase = createClient();
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        if (s) setSession(s.user);
+      });
+    });
   }, [id]);
 
   const handleDonate = async (e: React.FormEvent) => {

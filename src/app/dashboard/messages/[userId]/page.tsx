@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef, use } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function ConversationPage({ params }: { params: Promise<{ userId: string }> }) {
   const resolvedParams = use(params);
@@ -14,18 +15,23 @@ export default function ConversationPage({ params }: { params: Promise<{ userId:
 
   const fetchChat = async () => {
     try {
-      const res = await fetch(`/api/messages/${resolvedParams.userId}`);
-      const data = await res.json();
-      if (res.ok) {
-        setMessages(data.messages);
-        setContact(data.contact);
-        
-        // Find my own ID from messages if any, else we need a me route.
-        // Actually we can hit /api/auth/me to get own ID
-        const meRes = await fetch('/api/auth/me');
-        const meData = await meRes.json();
-        setMeId(meData.user.id);
-      }
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const me = session.user.id;
+      setMeId(me);
+
+      const [msgRes, contactRes] = await Promise.all([
+        supabase.from('messages')
+          .select('*')
+          .or(`and(sender_id.eq.${me},receiver_id.eq.${resolvedParams.userId}),and(sender_id.eq.${resolvedParams.userId},receiver_id.eq.${me})`)
+          .order('created_at', { ascending: true }),
+        supabase.from('users').select('*').eq('id', resolvedParams.userId).single()
+      ]);
+
+      if (msgRes.data) setMessages(msgRes.data);
+      if (contactRes.data) setContact(contactRes.data);
+      
     } catch (err) {
       console.error(err);
     } finally {
@@ -35,7 +41,11 @@ export default function ConversationPage({ params }: { params: Promise<{ userId:
 
   const markAsRead = async () => {
     try {
-      await fetch(`/api/messages/${resolvedParams.userId}`, { method: 'PATCH' });
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      await supabase.from('messages').update({ read_at: new Date().toISOString() })
+        .eq('sender_id', resolvedParams.userId).eq('receiver_id', session.user.id).is('read_at', null);
     } catch (err) {
       console.error(err);
     }
@@ -61,16 +71,17 @@ export default function ConversationPage({ params }: { params: Promise<{ userId:
     if (!newMessage.trim()) return;
 
     try {
-      const res = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          receiver_id: resolvedParams.userId,
-          content: newMessage
-        })
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error } = await supabase.from('messages').insert({
+        sender_id: session.user.id,
+        receiver_id: resolvedParams.userId,
+        content: newMessage
       });
 
-      if (res.ok) {
+      if (!error) {
         setNewMessage('');
         fetchChat(); // Refresh instantly
       }

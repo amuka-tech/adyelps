@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/Card';
+import { Button } from '@/components/Button';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 import { showToast } from '@/lib/toast';
 
 export default function MarketplacePage() {
@@ -13,30 +16,28 @@ export default function MarketplacePage() {
   const [category, setCategory] = useState('');
   const [location, setLocation] = useState('');
 
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [bizRes, sessionRes] = await Promise.all([
-        fetch(`/api/marketplace/businesses?category=${category}&location=${location}`),
-        fetch('/api/auth/me')
-      ]);
-
-      if (bizRes.ok) {
-        const data = await bizRes.json();
-        setBusinesses(data.businesses);
-      }
-      if (sessionRes.ok) {
-        const data = await sessionRes.json();
-        setCurrentUser(data.user);
-      }
-    } catch (error) {
-      console.error("Failed to fetch marketplace data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    async function fetchData() {
+      try {
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        let query = supabase.from('businesses').select('*').eq('status', 'APPROVED');
+        if (category) query = query.eq('category', category);
+        
+        const [bizRes, sessionRes] = await Promise.all([
+          query,
+          session ? supabase.from('users').select('*').eq('id', session.user.id).single() : { data: null }
+        ]);
+        
+        if (bizRes.data) setBusinesses(bizRes.data);
+        if (sessionRes.data) setCurrentUser(sessionRes.data);
+      } catch (err) {
+        console.error("Failed to fetch marketplace data", err);
+      } finally {
+        setLoading(false);
+      }
+    }
     fetchData();
   }, [category, location]);
 

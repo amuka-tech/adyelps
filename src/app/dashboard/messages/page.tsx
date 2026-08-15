@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function InboxPage() {
   const [conversations, setConversations] = useState<any[]>([]);
@@ -10,10 +11,26 @@ export default function InboxPage() {
   useEffect(() => {
     async function fetchInbox() {
       try {
-        const res = await fetch('/api/messages');
-        const data = await res.json();
-        if (res.ok) {
-          setConversations(data.conversations);
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        const userId = session.user.id;
+        const { data } = await supabase.from('messages').select('*').or(`sender_id.eq.${userId},receiver_id.eq.${userId}`);
+        if (data) {
+          const groups: any = {};
+          for (const m of data) {
+            const contactId = m.sender_id === userId ? m.receiver_id : m.sender_id;
+            if (!groups[contactId] || new Date(m.created_at) > new Date(groups[contactId].last_message_date)) {
+              groups[contactId] = {
+                contact_id: contactId,
+                first_name: 'Member', last_name: String(contactId),
+                last_message: m.content,
+                last_message_date: m.created_at,
+                unread_count: m.receiver_id === userId && !m.read_at ? 1 : 0
+              };
+            }
+          }
+          setConversations(Object.values(groups).sort((a: any, b: any) => new Date(b.last_message_date).getTime() - new Date(a.last_message_date).getTime()));
         }
       } catch (err) {
         console.error('Failed to fetch inbox', err);

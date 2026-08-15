@@ -4,22 +4,25 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/Card';
 import { Button } from '@/components/Button';
+import { createClient } from '@/utils/supabase/client';
 
 export default function MemberShopPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/public/shop')
-      .then(res => res.json())
-      .then(data => {
-        if (data.products) setProducts(data.products);
-        setLoading(false);
-      })
-      .catch(err => {
+    const fetchShop = async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase.from('shop_products').select('*').eq('status', 'ACTIVE');
+        if (data) setProducts(data);
+      } catch (err) {
         console.error(err);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    fetchShop();
   }, []);
 
   return (

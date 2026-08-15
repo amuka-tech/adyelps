@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
 
 export default function AdminShop({ 
   shopProducts, 
@@ -17,17 +18,22 @@ export default function AdminShop({
 
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch('/api/admin/shop/products', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify({ ...productForm, price: parseFloat(productForm.price), stock_quantity: parseInt(productForm.stock_quantity) }) 
-    });
-    if (res.ok) { 
+    const supabase = createClient();
+    const { error } = await supabase.from('shop_products').insert([{
+      name: productForm.name,
+      description: productForm.description,
+      price: parseFloat(productForm.price),
+      stock_quantity: parseInt(productForm.stock_quantity),
+      image_url: productForm.image_url,
+      status: productForm.status
+    }]);
+
+    if (!error) { 
       alert('Product created!'); 
       setProductForm({ name: '', description: '', price: '', stock_quantity: '0', image_url: '', status: 'ACTIVE' }); 
       fetchData(); 
     } else {
-      alert((await res.json()).error);
+      alert(error.message);
     }
   };
 

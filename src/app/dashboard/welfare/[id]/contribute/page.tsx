@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/Card';
 import { Button } from '@/components/Button';
+import { createClient } from '@/utils/supabase/client';
 
 export default function ContributePage({ params }: { params: { id: string } }) {
   const obituaryId = params.id;
@@ -15,51 +16,59 @@ export default function ContributePage({ params }: { params: { id: string } }) {
   const [contributionForm, setContributionForm] = useState({
     amount_gross: '',
     payment_method: 'MOBILE_MONEY'
+    payment_method: 'MOBILE_MONEY',
+    receiptNumber: '',
+    message: ''
   });
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch(`/api/welfare/obituaries/${obituaryId}`);
-        if (!res.ok) throw new Error("Not found");
-        const data = await res.json();
-        setObituary(data.obituary);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+    const checkSession = async () => {
+      const supabase = createClient();
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (currentSession) {
+        const { data } = await supabase.from('users').select('*').eq('id', currentSession.user.id).single();
+        if (data) setSession(data);
+        
+        // Fetch obituary data
+        const { data: obituaryData } = await supabase.from('obituaries').select('*').eq('id', obituaryId).single();
+        setObituary(obituaryData);
+      } else {
+        router.push('/login');
       }
-    }
-    fetchData();
-  }, [obituaryId]);
+      setLoading(false);
+    };
+    checkSession();
+  }, [router, obituaryId]);
 
   const handleLogContribution = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     
-    if (obituary?.contribution_expiry && new Date() > new Date(obituary.contribution_expiry)) {
-      alert("This contribution link has expired.");
-      setSubmitting(false);
-      return;
-    }
+    try {
+      const supabase = createClient();
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      const { error } = await supabase.from('contributions').insert({
+        obituary_id: obituaryId,
+        member_id: currentSession?.user.id,
+        amount_gross: parseFloat(contributionForm.amount_gross),
+        amount_net: parseFloat(contributionForm.amount_gross) * 0.95, // dummy deduction
+        payment_method: contributionForm.payment_method,
+        reference: contributionForm.receiptNumber,
+        notes: contributionForm.message || "Contribution logged manually"
+      });
 
-    const res = await fetch(`/api/welfare/ledger/${obituaryId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ obituary_id: obituaryId, ...contributionForm })
-    });
-    setSubmitting(false);
-
-    if (res.ok) {
-      alert("Contribution logged! It will appear on the ledger once verified by the Treasurer.");
-      router.push(`/dashboard/welfare/${obituaryId}`);
-    } else {
-      if (res.status === 401) {
-        alert("Please log in to contribute.");
-        router.push('/login');
+      if (!error) {
+        alert("Contribution logged successfully!");
+        router.push(`/dashboard/welfare/${obituaryId}`);
       } else {
-        alert("Failed to log contribution.");
+        alert(error.message || "Failed to log contribution");
       }
+    } catch (err) {
+      console.error(err);
+      alert("Network error.");
+    } finally {
+      setSubmitting(false);
     }
   };
 

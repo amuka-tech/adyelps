@@ -14,13 +14,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     async function fetchUser() {
       try {
-        const res = await fetch('/api/auth/me');
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        } else {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (!session || sessionError) {
           window.location.href = '/login';
+          return;
         }
+
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (userError || !userData) {
+          window.location.href = '/login';
+          return;
+        }
+
+        setUser(userData);
       } catch (error) {
         console.error("Failed to load user", error);
       } finally {
@@ -53,7 +68,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
+      await supabase.auth.signOut();
       window.location.href = '/login';
     } catch (err) {
       console.error('Logout failed', err);

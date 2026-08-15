@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function ListBusinessPage() {
   const router = useRouter();
@@ -23,18 +24,21 @@ export default function ListBusinessPage() {
     setSubmitting(true);
     
     try {
-      const res = await fetch('/api/marketplace/businesses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      
+      const { error } = await supabase.from('businesses').insert({
+        ...form,
+        owner_id: session.user.id,
+        status: 'PENDING'
       });
       
-      if (res.ok) {
-        alert("Business submitted successfully! It will appear in the directory once approved by the admin team.");
+      if (!error) {
+        alert("Business submitted successfully! It will appear once approved by the admin team.");
         router.push('/dashboard/marketplace');
       } else {
-        const data = await res.json();
-        alert(data.error || "Failed to submit business");
+        alert(error.message || "Failed to submit business");
       }
     } catch (err) {
       console.error(err);

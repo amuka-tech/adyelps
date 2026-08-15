@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { showToast } from '@/lib/toast';
+import { createClient } from '@/utils/supabase/client';
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -19,22 +20,23 @@ export default function ProfilePage() {
   useEffect(() => {
     async function checkSession() {
       try {
-        const [sessionRes, prefsRes] = await Promise.all([
-          fetch('/api/auth/me'),
-          fetch('/api/user/preferences')
-        ]);
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (sessionRes.ok) {
-          const data = await sessionRes.json();
-          setUser(data.user);
-        } else {
+        if (!session) {
           window.location.href = '/login';
           return;
         }
 
-        if (prefsRes.ok) {
-          const prefsData = await prefsRes.json();
-          if (prefsData.preferences) setPreferences(prefsData.preferences);
+        const [userRes, prefsRes] = await Promise.all([
+          supabase.from('users').select('*').eq('id', session.user.id).single(),
+          supabase.from('user_preferences').select('*').eq('user_id', session.user.id).single()
+        ]);
+        
+        if (userRes.data) setUser(userRes.data);
+
+        if (prefsRes.data) {
+          setPreferences(prefsRes.data);
         }
       } catch (error) {
         console.error("Failed to fetch session", error);
@@ -247,11 +249,8 @@ export default function ProfilePage() {
                       checked={!user.hide_contact_info} 
                       onChange={async () => {
                         setUser({...user, hide_contact_info: 0});
-                        await fetch('/api/profile/privacy', {
-                          method: 'PUT',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ hide_contact_info: false })
-                        });
+                        const supabase = createClient();
+                        await supabase.from('users').update({ hide_contact_info: false }).eq('id', user.id);
                       }} 
                     />
                     <div>
@@ -268,11 +267,8 @@ export default function ProfilePage() {
                       checked={!!user.hide_contact_info} 
                       onChange={async () => {
                         setUser({...user, hide_contact_info: 1});
-                        await fetch('/api/profile/privacy', {
-                          method: 'PUT',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ hide_contact_info: true })
-                        });
+                        const supabase = createClient();
+                        await supabase.from('users').update({ hide_contact_info: true }).eq('id', user.id);
                       }} 
                     />
                     <div>
@@ -368,12 +364,9 @@ export default function ProfilePage() {
                       setSavingPrefs(true);
                       setSavedMessage('');
                       try {
-                        const res = await fetch('/api/user/preferences', {
-                          method: 'PATCH',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify(preferences)
-                        });
-                        if (res.ok) {
+                        const supabase = createClient();
+                        const { error } = await supabase.from('user_preferences').update(preferences).eq('user_id', user.id);
+                        if (!error) {
                           setSavedMessage('Preferences updated successfully!');
                           setTimeout(() => setSavedMessage(''), 3000);
                         }

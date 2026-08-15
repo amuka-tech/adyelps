@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
 
 export default function AdminObituaries({ fetchData }: { fetchData: () => void }) {
   const [obitForm, setObitForm] = useState({ 
@@ -13,17 +14,21 @@ export default function AdminObituaries({ fetchData }: { fetchData: () => void }
 
   const handleCreateObituary = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch('/api/welfare/obituaries', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify(obitForm) 
-    });
-    if (res.ok) { 
+    const supabase = createClient();
+    
+    const insertData: any = { ...obitForm };
+    if (!insertData.contribution_expiry) {
+      insertData.contribution_expiry = null;
+    }
+
+    const { error } = await supabase.from('obituaries').insert([insertData]);
+
+    if (!error) { 
       alert('Obituary created!'); 
       setObitForm({ deceased_name: '', biography: '', funeral_dates_venues: '', spokesperson_contact: '', contribution_expiry: '' }); 
       fetchData(); 
     } else {
-      alert((await res.json()).error);
+      alert(error.message);
     }
   };
 

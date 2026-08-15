@@ -2,23 +2,21 @@
 
 import React, { useState } from 'react';
 import { showToast } from '@/lib/toast';
+import { createClient } from '@/utils/supabase/client';
 
 export default function AdminNews({ news, fetchData }: { news: any[], fetchData: () => void }) {
   const [newsForm, setNewsForm] = useState({ title: '', content: '', image_url: '', category: 'General', status: 'DRAFT' });
 
   const handleCreateNews = async (e: React.FormEvent, status: string) => {
     e.preventDefault();
-    const res = await fetch('/api/admin/news', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify({...newsForm, status}) 
-    });
-    if (res.ok) { 
+    const supabase = createClient();
+    const { error } = await supabase.from('news').insert({ ...newsForm, status });
+    if (!error) { 
       alert('News Article created!'); 
       setNewsForm({ title: '', content: '', image_url: '', category: 'General', status: 'DRAFT' }); 
       fetchData(); 
     } else {
-      alert((await res.json()).error);
+      alert(error.message);
     }
   };
 

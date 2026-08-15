@@ -3,19 +3,25 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/Card';
+import { createClient } from '@/utils/supabase/client';
 
 export default function MemberNewsFeed() {
   const [articles, setArticles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/public/news')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data && data.articles) setArticles(data.articles);
+    const fetchNews = async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase.from('news_articles').select('*').eq('status', 'PUBLISHED').order('published_at', { ascending: false });
+        if (data) setArticles(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      }
+    };
+    fetchNews();
   }, []);
 
   if (loading) return <div className="p-20 text-center font-bold text-gray-500">Loading your news feed...</div>;

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
 import AdminUsers from '@/components/admin/AdminUsers';
 import AdminJobs from '@/components/admin/AdminJobs';
 import AdminBusinesses from '@/components/admin/AdminBusinesses';
@@ -45,52 +46,76 @@ export default function SuperAdminDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        window.location.href = '/login';
+        return;
+      }
+
+      let usersQuery = supabase.from('users').select('*');
+      if (search) {
+        usersQuery = usersQuery.ilike('first_name', `%${search}%`);
+      }
+
       const [
-        usersRes, statsRes, auditRes, condRes, ratesRes, contRes, jobsRes, bizRes, projRes, settingsRes, newsRes, productsRes, ordersRes, pollsRes, docsRes
+        { data: usersData },
+        { count: usersCount },
+        { data: logsData },
+        { data: condolencesData },
+        { data: ratesData },
+        { data: contributionsData },
+        { data: jobsData },
+        { data: activeBizData },
+        { data: pendingBizData },
+        { data: projectsData },
+        { data: settingsRows },
+        { data: newsData },
+        { data: productsData },
+        { data: ordersData },
+        { data: pollsData },
+        { data: docsData }
       ] = await Promise.all([
-        fetch(`/api/superadmin/users?search=${search}`),
-        fetch('/api/superadmin/stats'),
-        fetch('/api/superadmin/audit'),
-        fetch('/api/admin/condolences?status=PENDING'),
-        fetch('/api/welfare/deduction-rates'),
-        fetch('/api/welfare/contributions?status=PENDING'),
-        fetch('/api/admin/careers/pending'),
-        fetch('/api/admin/marketplace/pending'),
-        fetch('/api/projects'),
-        fetch('/api/superadmin/settings'),
-        fetch('/api/admin/news'),
-        fetch('/api/admin/shop/products'),
-        fetch('/api/admin/shop/orders'),
-        fetch('/api/governance/polls'),
-        fetch('/api/governance/documents')
+        usersQuery,
+        supabase.from('users').select('*', { count: 'exact', head: true }),
+        supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(50),
+        supabase.from('condolences').select('*').eq('status', 'PENDING'),
+        supabase.from('deduction_rates').select('*'),
+        supabase.from('contributions').select('*').eq('status', 'PENDING'),
+        supabase.from('jobs').select('*').eq('status', 'PENDING'),
+        supabase.from('businesses').select('*').eq('status', 'ACTIVE'),
+        supabase.from('businesses').select('*').eq('status', 'PENDING'),
+        supabase.from('projects').select('*'),
+        supabase.from('system_settings').select('*'),
+        supabase.from('news_articles').select('*'),
+        supabase.from('shop_products').select('*'),
+        supabase.from('shop_orders').select('*'),
+        supabase.from('polls').select('*'),
+        supabase.from('documents').select('*')
       ]);
 
-      if (usersRes.ok) setUsers((await usersRes.json()).users);
-      else if (usersRes.status === 401 || usersRes.status === 403) setError("Unauthorized. Super Admin access required.");
+      if (usersData) setUsers(usersData);
+      setStats({ total_users: usersCount || 0 });
+      if (logsData) setLogs(logsData);
+      if (condolencesData) setCondolences(condolencesData);
+      if (ratesData) setRates(ratesData);
+      if (contributionsData) setContributions(contributionsData);
+      if (jobsData) setPendingJobs(jobsData);
+      if (projectsData) setProjects(projectsData);
+      if (newsData) setNews(newsData);
+      if (productsData) setShopProducts(productsData);
+      if (ordersData) setShopOrders(ordersData);
       
-      if (statsRes.ok) setStats((await statsRes.json()).stats);
-      if (auditRes.ok) setLogs((await auditRes.json()).logs);
-      if (condRes.ok) setCondolences((await condRes.json()).condolences);
-      if (ratesRes.ok) setRates((await ratesRes.json()).rates);
-      if (contRes.ok) setContributions((await contRes.json()).contributions);
-      if (jobsRes.ok) setPendingJobs((await jobsRes.json()).jobs);
-      if (projRes.ok) setProjects((await projRes.json()).projects);
-      if (newsRes.ok) setNews((await newsRes.json()).articles);
-      if (productsRes.ok) setShopProducts((await productsRes.json()).products);
-      if (ordersRes.ok) setShopOrders((await ordersRes.json()).orders);
-      if (bizRes.ok) {
-        const data = await bizRes.json();
-        setPendingBusinesses(data.pendingBusinesses);
-        setActiveBusinesses(data.activeBusinesses);
-      }
-      if (settingsRes.ok) {
-        const data = await settingsRes.json();
+      setPendingBusinesses(pendingBizData || []);
+      setActiveBusinesses(activeBizData || []);
+
+      if (settingsRows) {
         const settingsMap: any = {};
-        data.settings.forEach((s: any) => settingsMap[s.setting_key] = s.setting_value);
+        settingsRows.forEach((s: any) => settingsMap[s.setting_key] = s.setting_value);
         setSettingsData(settingsMap);
       }
-      if (pollsRes.ok) setPolls((await pollsRes.json()).polls);
-      if (docsRes.ok) setDocuments((await docsRes.json()).documents);
+      if (pollsData) setPolls(pollsData);
+      if (docsData) setDocuments(docsData);
     } catch (err) {
       setError("Network Error");
     } finally {
@@ -104,40 +129,47 @@ export default function SuperAdminDashboard() {
 
   // Handlers needed for components that just render arrays
   const handleRoleChange = async (userId: string, roleId: number) => {
-    const res = await fetch(`/api/superadmin/users/${userId}/role`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'UPDATE_ROLES', roles: [roleId] }) });
-    if (res.ok) fetchData(); else alert((await res.json()).error);
+    const supabase = createClient();
+    const { error } = await supabase.from('users').update({ role: roleId }).eq('id', userId);
+    if (!error) fetchData(); else alert(error.message);
   };
 
   const handleStatusChange = async (userId: string, newStatus: string) => {
     const reason = prompt(`Reason for changing status to ${newStatus}?`);
     if (!reason) return;
-    const res = await fetch(`/api/superadmin/users/${userId}/role`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'UPDATE_STATUS', status: newStatus, reason }) });
-    if (res.ok) fetchData(); else alert((await res.json()).error);
+    const supabase = createClient();
+    const { error } = await supabase.from('users').update({ account_status: newStatus }).eq('id', userId);
+    if (!error) fetchData(); else alert(error.message);
   };
 
   const handleVerifyContribution = async (id: number, status: string) => {
-    const res = await fetch(`/api/welfare/contributions/${id}/verify`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
-    if (res.ok) fetchData(); else alert(`Error setting status to ${status}`);
+    const supabase = createClient();
+    const { error } = await supabase.from('contributions').update({ status }).eq('id', id);
+    if (!error) fetchData(); else alert(`Error setting status to ${status}`);
   };
 
   const handleModerateJob = async (id: number, status: string) => {
-    const res = await fetch(`/api/admin/careers/moderate/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
-    if (res.ok) fetchData(); else alert(`Error moderating job`);
+    const supabase = createClient();
+    const { error } = await supabase.from('jobs').update({ status }).eq('id', id);
+    if (!error) fetchData(); else alert(`Error moderating job`);
   };
 
   const handleModerateBusiness = async (id: number, status: string) => {
-    const res = await fetch(`/api/admin/marketplace/moderate/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
-    if (res.ok) fetchData(); else alert(`Error moderating business`);
+    const supabase = createClient();
+    const { error } = await supabase.from('businesses').update({ status }).eq('id', id);
+    if (!error) fetchData(); else alert(`Error moderating business`);
   };
 
   const handleModerateCondolence = async (id: number, status: string) => {
-    const res = await fetch(`/api/admin/condolences/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
-    if (res.ok) fetchData(); else alert(`Error moderating condolence`);
+    const supabase = createClient();
+    const { error } = await supabase.from('condolences').update({ status }).eq('id', id);
+    if (!error) fetchData(); else alert(`Error moderating condolence`);
   };
 
   const handleUpdateOrder = async (orderId: number, status: string) => {
-    const res = await fetch(`/api/admin/shop/orders/${orderId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
-    if (res.ok) fetchData(); else alert(`Error updating order`);
+    const supabase = createClient();
+    const { error } = await supabase.from('shop_orders').update({ status }).eq('id', orderId);
+    if (!error) fetchData(); else alert(`Error updating order`);
   };
 
   if (error) return <div className="h-screen flex items-center justify-center bg-[#f4f7f6] text-red-500 font-bold text-2xl">{error}</div>;

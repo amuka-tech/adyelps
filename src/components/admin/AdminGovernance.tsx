@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/Card';
 import { Button } from '@/components/Button';
+import { createClient } from '@/utils/supabase/client';
 
 export default function AdminGovernance({ polls, documents, fetchData }: { polls: any[], documents: any[], fetchData: () => void }) {
   const [activeTab, setActiveTab] = useState<'polls' | 'documents'>('polls');
@@ -38,24 +39,21 @@ export default function AdminGovernance({ polls, documents, fetchData }: { polls
     }
 
     try {
-      const res = await fetch('/api/admin/governance/polls', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: pollTitle,
-          description: pollDesc,
-          poll_type: pollType,
-          start_date: startDate,
-          end_date: endDate,
-          options: validOptions
-        })
+      const supabase = createClient();
+      const { error } = await supabase.from('polls').insert({
+        title: pollTitle,
+        description: pollDesc,
+        poll_type: pollType,
+        start_date: startDate,
+        end_date: endDate,
+        options: validOptions
       });
-      if (res.ok) {
+      if (!error) {
         alert("Poll created successfully!");
         setPollTitle(''); setPollDesc(''); setOptions(['', '']);
         fetchData();
       } else {
-        alert((await res.json()).error);
+        alert(error.message);
       }
     } catch (err) {
       alert("Network Error");
@@ -68,17 +66,18 @@ export default function AdminGovernance({ polls, documents, fetchData }: { polls
     e.preventDefault();
     setLoadingDoc(true);
     try {
-      const res = await fetch('/api/admin/governance/documents', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: docTitle, doc_type: docType, file_url: docUrl })
+      const supabase = createClient();
+      const { error } = await supabase.from('documents').insert({
+        title: docTitle,
+        doc_type: docType,
+        file_url: docUrl
       });
-      if (res.ok) {
+      if (!error) {
         alert("Document added successfully!");
         setDocTitle(''); setDocUrl('');
         fetchData();
       } else {
-        alert((await res.json()).error);
+        alert(error.message);
       }
     } catch (err) {
       alert("Network Error");

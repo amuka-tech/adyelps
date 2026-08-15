@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
 
 export default function AdminEvents({ fetchData }: { fetchData: () => void }) {
   const [eventForm, setEventForm] = useState({ 
@@ -14,18 +15,53 @@ export default function AdminEvents({ fetchData }: { fetchData: () => void }) {
 
   const handleCreateEvent = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch('/api/events', { 
-      method: 'POST', 
-      headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify(eventForm) 
-    });
-    if (res.ok) { 
-      alert('Event created!'); 
-      setEventForm({ title: '', description: '', event_date: '', location: '', image_url: '', tiers: [] }); 
-      fetchData(); 
-    } else {
-      alert((await res.json()).error);
+    const supabase = createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('You must be logged in to create an event.');
+      return;
     }
+
+    const { data: event, error: eventError } = await supabase
+      .from('events')
+      .insert({
+        title: eventForm.title,
+        description: eventForm.description,
+        event_date: eventForm.event_date,
+        location: eventForm.location,
+        image_url: eventForm.image_url || null,
+        created_by_id: user.id
+      })
+      .select()
+      .single();
+
+    if (eventError) {
+      alert(eventError.message);
+      return;
+    }
+
+    if (eventForm.tiers.length > 0 && event) {
+      const tiersToInsert = eventForm.tiers.map((tier) => ({
+        event_id: event.id,
+        name: tier.name,
+        price: parseFloat(tier.price) || 0,
+        capacity: parseInt(tier.capacity) || 0
+      }));
+
+      const { error: tiersError } = await supabase
+        .from('ticket_tiers')
+        .insert(tiersToInsert);
+
+      if (tiersError) {
+        alert(tiersError.message);
+        return;
+      }
+    }
+
+    alert('Event created!'); 
+    setEventForm({ title: '', description: '', event_date: '', location: '', image_url: '', tiers: [] }); 
+    fetchData(); 
   };
 
   return (

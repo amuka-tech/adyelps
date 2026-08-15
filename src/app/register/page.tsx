@@ -33,28 +33,39 @@ export default function RegisterPage() {
     setSuccess('');
 
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
+
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            classYear: formData.classYear,
+            profession: formData.profession,
+            phone: formData.phone,
+          }
+        }
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        setSuccess('Registration successful! Please log in.');
-        setFormData({
-          firstName: '', lastName: '', email: '', password: '', classYear: '', profession: '', phone: ''
-        });
-        // Optionally, redirect to login page after a delay
-        setTimeout(() => {
-          router.push('/login');
-        }, 2000);
-      } else {
-        setError(data.error || 'Registration failed');
+      if (signUpError) {
+        setError(signUpError.message);
+        return;
       }
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
+
+      setSuccess('Registration successful! Please log in.');
+      setFormData({
+        firstName: '', lastName: '', email: '', password: '', classYear: '', profession: '', phone: ''
+      });
+      // Optionally, redirect to login page after a delay
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
+
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

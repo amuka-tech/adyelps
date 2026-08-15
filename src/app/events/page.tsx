@@ -12,11 +12,14 @@ export default function EventsPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch('/api/public/events');
-        if (res.ok) {
-          const data = await res.json();
-          setEvents(data.events);
-        }
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('events')
+          .select('*')
+          .eq('status', 'UPCOMING')
+          .order('event_date', { ascending: true });
+        if (data) setEvents(data);
       } catch (err) {
         console.error(err);
       } finally {

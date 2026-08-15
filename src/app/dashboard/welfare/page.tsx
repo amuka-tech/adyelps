@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function WelfareHubPage() {
   const [obituaries, setObituaries] = useState<any[]>([]);
@@ -10,10 +11,10 @@ export default function WelfareHubPage() {
   useEffect(() => {
     async function fetchObituaries() {
       try {
-        const res = await fetch('/api/welfare/obituaries');
-        if (res.ok) {
-          const data = await res.json();
-          setObituaries(data.obituaries);
+        const supabase = createClient();
+        const { data } = await supabase.from('obituaries').select('*').eq('status', 'ACTIVE');
+        if (data) {
+          setObituaries(data);
         }
       } catch (error) {
         console.error(error);

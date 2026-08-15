@@ -11,11 +11,14 @@ export default function GiveBackPage() {
   useEffect(() => {
     async function fetchProjects() {
       try {
-        const res = await fetch('/api/public/projects');
-        if (res.ok) {
-          const data = await res.json();
-          setProjects(data.projects);
-        }
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('status', 'ACTIVE')
+          .order('created_at', { ascending: false });
+        if (data) setProjects(data);
       } catch (err) {
         console.error(err);
       } finally {

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function PostJobPage() {
   const router = useRouter();
@@ -24,18 +25,21 @@ export default function PostJobPage() {
     setSubmitting(true);
     
     try {
-      const res = await fetch('/api/careers/jobs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      
+      const { error } = await supabase.from('jobs').insert({
+        ...form,
+        posted_by_id: session.user.id,
+        status: 'PENDING'
       });
       
-      if (res.ok) {
+      if (!error) {
         alert("Job submitted successfully! It will appear on the board once approved by the admin team.");
         router.push('/dashboard/careers');
       } else {
-        const data = await res.json();
-        alert(data.error || "Failed to submit job");
+        alert(error.message || "Failed to submit job");
       }
     } catch (err) {
       console.error(err);

@@ -29,21 +29,28 @@ export function RegistrationForm() {
     setError('');
     
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
+
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            classYear: formData.classYear,
+            profession: formData.profession,
+            phone: formData.phone,
+          }
+        }
       });
-      
-      const data = await res.json();
-      
-      if (res.ok) {
-        setSuccess(true);
-        setFormData({
-          firstName: '', lastName: '', classYear: '', profession: '', email: '', phone: '', password: ''
-        });
+
+      if (signUpError) {
+        setError(signUpError.message);
       } else {
-        setError(data.error || 'Registration failed');
+        setSuccess(true);
+        setFormData({ firstName: '', lastName: '', classYear: '', profession: '', email: '', phone: '', password: '' });
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');

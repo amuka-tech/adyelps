@@ -19,27 +19,33 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+      const { createClient } = await import('@/utils/supabase/client');
+      const supabase = createClient();
+      
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        // Redirect Super Admins directly to the admin portal, bypassing the member lounge
-        if (data.user?.role === 'SUPER_ADMIN' || data.user?.assignedRoles?.includes('Super Admin')) {
-          window.location.href = '/superadmin';
-        } else {
-          // Trigger a hard reload to update the Navbar state and go to dashboard
-          window.location.href = '/dashboard';
-        }
-      } else {
-        setError(data.error || 'Login failed');
+      if (authError) {
+        setError(authError.message);
+        return;
       }
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
+
+      // Check if user is super admin
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+      if (userData?.role === 'SUPER_ADMIN') {
+        window.location.href = '/superadmin';
+      } else {
+        window.location.href = '/dashboard';
+      }
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/Card';
 import { Button } from '@/components/Button';
+import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function MentorshipHub() {
   const [activeTab, setActiveTab] = useState('find');
@@ -25,23 +27,23 @@ export default function MentorshipHub() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [mentorsRes, requestsRes, profileRes] = await Promise.all([
-        fetch('/api/mentorship/mentors'),
-        fetch('/api/mentorship/requests'),
-        fetch('/api/mentorship/profile')
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const [mentorsRes, reqsRes, profileRes] = await Promise.all([
+        supabase.from('mentors').select('*, users(*)'),
+        supabase.from('mentorship_requests').select('*'),
+        session ? supabase.from('users').select('*').eq('id', session.user.id).single() : { data: null }
       ]);
-
-      if (mentorsRes.ok) setMentors((await mentorsRes.json()).mentors || []);
-      if (requestsRes.ok) setMyRequests((await requestsRes.json()).requests || []);
-      if (profileRes.ok) {
-        const pData = await profileRes.json();
-        if (pData.profile) {
-          setMyProfile(pData.profile);
-          setIndustry(pData.profile.industry);
-          setBio(pData.profile.bio);
-          setSkillsStr(pData.profile.skills?.join(', ') || '');
-          setMaxMentees(pData.profile.max_mentees);
-        }
+      
+      if (mentorsRes.data) setMentors(mentorsRes.data);
+      if (reqsRes.data) setMyRequests(reqsRes.data);
+      if (profileRes.data) {
+        setMyProfile(profileRes.data);
+        setIndustry(profileRes.data.industry || '');
+        setBio(profileRes.data.bio || '');
+        setSkillsStr(profileRes.data.skills?.join(', ') || '');
+        setMaxMentees(profileRes.data.max_mentees || 3);
       }
     } catch (err) {
       console.error(err);
@@ -58,24 +60,24 @@ export default function MentorshipHub() {
     e.preventDefault();
     setSavingProfile(true);
     try {
-      const skillsArray = skillsStr.split(',').map(s => s.trim()).filter(Boolean);
-      const res = await fetch('/api/mentorship/profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          industry,
-          bio,
-          skills: skillsArray,
-          is_accepting_mentees: true,
-          max_mentees: maxMentees
-        })
-      });
-      if (res.ok) {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error } = await supabase.from('mentors').upsert({
+        user_id: session.user.id,
+        expertise: industry,
+        bio,
+        max_mentees: maxMentees,
+        is_active: true,
+      }, { onConflict: 'user_id' });
+
+      if (error) {
+        alert('Failed to save profile: ' + error.message);
+      } else {
         alert('Mentor profile saved successfully!');
         fetchData();
         setActiveTab('find');
-      } else {
-        alert('Failed to save profile.');
       }
     } finally {
       setSavingProfile(false);
@@ -85,19 +87,25 @@ export default function MentorshipHub() {
   const handleRequestMentorship = async () => {
     if (!requestGoals) return alert("Please specify your goals.");
     try {
-      const res = await fetch('/api/mentorship/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mentor_id: requestModal.user_id, goals: requestGoals })
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { error } = await supabase.from('mentorship_requests').insert({
+        mentor_id: requestModal.id,
+        mentee_id: session.user.id,
+        message: requestGoals,
+        status: 'PENDING',
       });
-      if (res.ok) {
+
+      if (error) {
+        alert(error.message);
+      } else {
         alert("Request sent successfully!");
         setRequestModal(null);
         setRequestGoals('');
         fetchData();
         setActiveTab('requests');
-      } else {
-        alert((await res.json()).error);
       }
     } catch (err) {
       console.error(err);
@@ -106,15 +114,16 @@ export default function MentorshipHub() {
 
   const handleRespondRequest = async (requestId: number, status: string) => {
     try {
-      const res = await fetch('/api/mentorship/requests', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ request_id: requestId, status })
-      });
-      if (res.ok) {
-        fetchData();
-      } else {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('mentorship_requests')
+        .update({ status })
+        .eq('id', requestId);
+
+      if (error) {
         alert('Failed to update request.');
+      } else {
+        fetchData();
       }
     } catch (err) {
       console.error(err);

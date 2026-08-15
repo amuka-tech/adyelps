@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function JobBoardPage() {
   const [jobs, setJobs] = useState<any[]>([]);
@@ -15,15 +16,19 @@ export default function JobBoardPage() {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const queryParams = new URLSearchParams();
-      if (industry) queryParams.append('industry', industry);
-      if (location) queryParams.append('location', location);
-      if (jobType) queryParams.append('job_type', jobType);
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      
+      let query = supabase.from('jobs').select('*').eq('status', 'APPROVED');
+      
+      if (industry) query = query.eq('industry', industry);
+      if (location) query = query.ilike('location', `%${location}%`);
+      if (jobType) query = query.eq('job_type', jobType);
 
-      const res = await fetch(`/api/careers/jobs?${queryParams.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setJobs(data.jobs);
+      const { data } = await query;
+      if (data) {
+        setJobs(data);
       }
     } catch (error) {
       console.error("Failed to fetch jobs:", error);

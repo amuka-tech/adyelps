@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
@@ -22,13 +23,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
   const fetchProjectData = async () => {
     try {
-      const res = await fetch(`/api/projects/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setProject(data.project);
-        setDonations(data.donations);
-        setUpdates(data.updates || []);
-      }
+      const supabase = createClient();
+      const [projRes, donRes, upRes] = await Promise.all([
+        supabase.from('projects').select('*').eq('id', id).single(),
+        supabase.from('donations').select('*').eq('project_id', id).order('created_at', { ascending: false }),
+        supabase.from('project_updates').select('*').eq('project_id', id).order('created_at', { ascending: false })
+      ]);
+      if (projRes.data) setProject(projRes.data);
+      if (donRes.data) setDonations(donRes.data);
+      if (upRes.data) setUpdates(upRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -39,10 +42,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   useEffect(() => {
     fetchProjectData();
     // Check if user is logged in
-    fetch('/api/auth/me')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => data && setSession(data.user))
-      .catch(() => {});
+    const checkSession = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data } = await supabase.from('users').select('*').eq('id', session.user.id).single();
+        if (data) setSession(data);
+      }
+    };
+    checkSession();
   }, [id]);
 
   const handleDonate = async (e: React.FormEvent) => {
@@ -55,20 +63,24 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
     setProcessing(true);
     try {
-      const res = await fetch(`/api/projects/${id}/donate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: parseFloat(amount), is_anonymous: isAnonymous })
+      const supabase = createClient();
+      const { error } = await supabase.from('donations').insert({
+        project_id: id,
+        user_id: session.id,
+        amount: parseFloat(amount),
+        is_anonymous: isAnonymous,
+        first_name: isAnonymous ? 'Anonymous' : session.first_name,
+        last_name: isAnonymous ? '' : session.last_name,
+        class_year: session.class_year
       });
       
-      const data = await res.json();
-      if (res.ok) {
-        alert(data.message);
+      if (!error) {
+        alert("Donation successful!");
         setAmount('');
         setIsAnonymous(false);
         fetchProjectData(); // Refresh UI
       } else {
-        alert(data.error || "Failed to process donation.");
+        alert(error.message || "Failed to process donation.");
       }
     } catch (err) {
       alert("Network error.");

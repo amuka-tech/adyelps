@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function EventsPage() {
   const [events, setEvents] = useState<any[]>([]);
@@ -10,10 +11,10 @@ export default function EventsPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch('/api/events');
-        if (res.ok) {
-          const data = await res.json();
-          setEvents(data.events);
+        const supabase = createClient();
+        const { data: events } = await supabase.from('events').select('*, ticket_tiers(*)').eq('status', 'UPCOMING').order('event_date');
+        if (events) {
+          setEvents(events);
         }
       } catch (err) {
         console.error(err);

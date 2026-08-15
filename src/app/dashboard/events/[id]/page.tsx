@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
 
 export default function EventDetailsPage() {
   const params = useParams();
@@ -15,11 +16,11 @@ export default function EventDetailsPage() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const res = await fetch(`/api/events/${eventId}`);
-        if (res.ok) {
-          const data = await res.json();
-          setEvent(data.event);
-          setTiers(data.tiers);
+        const supabase = createClient();
+        const { data: eventData } = await supabase.from('events').select('*, ticket_tiers(*)').eq('id', eventId).single();
+        if (eventData) {
+          setEvent(eventData);
+          setTiers(eventData.ticket_tiers || []);
         }
       } catch (err) {
         console.error(err);

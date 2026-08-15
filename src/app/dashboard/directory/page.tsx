@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/Card';
 import { Button } from '@/components/Button';
 import Link from 'next/link';
+import { createClient } from '@/utils/supabase/client';
 
 export default function DirectoryPage() {
   const [loading, setLoading] = useState(true);
@@ -24,14 +25,18 @@ export default function DirectoryPage() {
 
   const fetchDirectory = async () => {
     try {
-      const res = await fetch('/api/directory');
-      if (res.ok) {
-        const data = await res.json();
-        setAlumni(data.members);
+      const supabase = createClient();
+      const { data: members, error } = await supabase
+        .from('users')
+        .select('id, first_name, last_name, email, phone, class_year, profession, hide_contact_info')
+        .order('first_name');
+        
+      if (members) {
+        setAlumni(members);
         
         // Extract unique years and professions for filters
-        const uniqueYears: any = Array.from(new Set(data.members.map((m: any) => m.class_year).filter(Boolean))).sort().reverse();
-        const uniqueProf: any = Array.from(new Set(data.members.map((m: any) => m.profession).filter(Boolean))).sort();
+        const uniqueYears: any = Array.from(new Set(members.map((m: any) => m.class_year).filter(Boolean))).sort().reverse();
+        const uniqueProf: any = Array.from(new Set(members.map((m: any) => m.profession).filter(Boolean))).sort();
         setYears(uniqueYears);
         setProfessions(uniqueProf);
       }
