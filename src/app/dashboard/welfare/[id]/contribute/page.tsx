@@ -11,11 +11,11 @@ export default function ContributePage({ params }: { params: { id: string } }) {
   const router = useRouter();
 
   const [obituary, setObituary] = useState<any>(null);
+  const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [contributionForm, setContributionForm] = useState({
     amount_gross: '',
-    payment_method: 'MOBILE_MONEY'
     payment_method: 'MOBILE_MONEY',
     receiptNumber: '',
     message: ''

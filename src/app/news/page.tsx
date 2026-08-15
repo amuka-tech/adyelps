@@ -10,23 +10,23 @@ export default function NewsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { createClient } = import('@/utils/supabase/client') as any;
-    import('@/utils/supabase/client').then(({ createClient }) => {
-      const supabase = createClient();
-      supabase
-        .from('news_articles')
-        .select('*')
-        .eq('status', 'PUBLISHED')
-        .order('published_at', { ascending: false })
-        .then(({ data }: any) => {
-          if (data) setNewsArticles(data);
-          setLoading(false);
-        })
-        .catch((err: any) => {
-          console.error(err);
-          setLoading(false);
-        });
-    });
+    async function fetchNews() {
+      try {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('news_articles')
+          .select('*')
+          .eq('status', 'PUBLISHED')
+          .order('published_at', { ascending: false });
+        if (data) setNewsArticles(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchNews();
   }, []);
 
   return (

@@ -10,22 +10,23 @@ export default function ShopPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    import('@/utils/supabase/client').then(({ createClient }) => {
-      const supabase = createClient();
-      supabase
-        .from('shop_products')
-        .select('*')
-        .eq('status', 'ACTIVE')
-        .order('created_at', { ascending: false })
-        .then(({ data }: any) => {
-          if (data) setProducts(data);
-          setLoading(false);
-        })
-        .catch((err: any) => {
-          console.error(err);
-          setLoading(false);
-        });
-    });
+    async function fetchShop() {
+      try {
+        const { createClient } = await import('@/utils/supabase/client');
+        const supabase = createClient();
+        const { data } = await supabase
+          .from('shop_products')
+          .select('*')
+          .eq('status', 'ACTIVE')
+          .order('created_at', { ascending: false });
+        if (data) setProducts(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchShop();
   }, []);
 
   return (

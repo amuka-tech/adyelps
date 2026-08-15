@@ -10,7 +10,7 @@ export default function ConversationPage({ params }: { params: Promise<{ userId:
   const [contact, setContact] = useState<any>(null);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
-  const [meId, setMeId] = useState<number | null>(null);
+  const [meId, setMeId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const fetchChat = async () => {
@@ -24,7 +24,7 @@ export default function ConversationPage({ params }: { params: Promise<{ userId:
       const [msgRes, contactRes] = await Promise.all([
         supabase.from('messages')
           .select('*')
-          .or(`and(sender_id.eq.${me},receiver_id.eq.${resolvedParams.userId}),and(sender_id.eq.${resolvedParams.userId},receiver_id.eq.${me})`)
+          .or(`and(sender_id.eq."${me}",receiver_id.eq."${resolvedParams.userId}"),and(sender_id.eq."${resolvedParams.userId}",receiver_id.eq."${me}")`)
           .order('created_at', { ascending: true }),
         supabase.from('users').select('*').eq('id', resolvedParams.userId).single()
       ]);
