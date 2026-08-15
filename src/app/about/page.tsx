@@ -26,16 +26,12 @@ export default function AboutPage() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6 border-b-4 border-skyblue inline-block pb-2">Our History</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6 border-b-4 border-skyblue inline-block pb-2">Our Story</h2>
             <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              In 2016, Adyel registered 226 learners for UACE. Out of these, 176 were male, and 50 were female. 
-              That year, seven students did not sit for the final UACE exams. After years of personal academic growth, 
-              career milestones, and life experiences, the Adyel has formed a strong Alumni network to give back 
-              to our alma mater and community in ways that matter.
+              After years of personal and academic growth, career milestones, and life experiences, the Old Boys and Old Girls (OBs & OGs) of Adyel Primary School have come together to form a strong Alumni network. Our goal is to reconnect, support one another, and give back to our beloved alma mater and community in ways that matter.
             </p>
             <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              It’s a move fueled by gratitude, responsibility, and the desire to uplift others—a true reflection of the 
-              values Adyel instilled in us during our school days.
+              This initiative is fueled by gratitude, responsibility, and a deep desire to uplift others—a true reflection of the strong foundation and values that Adyel Primary School instilled in us during our early school days.
             </p>
           </div>
         </div>
