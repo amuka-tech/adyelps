@@ -1,7 +1,7 @@
 # Adyel Primary School Class of 2016 Alumni Network
 
 Welcome to the official web platform for the **Adyel Primary School Class of 2016 Alumni Association**. 
-Under our slogan **"Aged to Perfection since 2016"**, this application serves as the central hub for our alumni to connect, give back to our alma mater, and grow together.
+Under our slogan **"Connected through time."**, this application serves as the central hub for our alumni to connect, give back to our alma mater, and grow together.
 
 ## 🌟 Key Features
 

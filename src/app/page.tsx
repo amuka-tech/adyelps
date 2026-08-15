@@ -102,7 +102,7 @@ export default function Home() {
             Adyel
           </h1>
           <p className="text-xl md:text-3xl font-medium text-pink mb-10 drop-shadow-md">
-            Aged to Perfection since 2016
+            Connected through time.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto">
