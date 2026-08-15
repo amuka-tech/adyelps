@@ -30,8 +30,40 @@ export async function GET(request: NextRequest) {
         },
       }
     );
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
+    const { data: authData, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error && authData?.session) {
+      const user = authData.session.user;
+      
+      // Check if user already exists in public.users
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+        
+      if (!existingUser) {
+        // Parse Google name metadata
+        const fullName = user.user_metadata?.full_name || user.user_metadata?.name || '';
+        const nameParts = fullName.split(' ');
+        const firstName = user.user_metadata?.firstName || nameParts[0] || 'Alumni';
+        const lastName = user.user_metadata?.lastName || (nameParts.length > 1 ? nameParts.slice(1).join(' ') : 'Member');
+        
+        // Insert missing profile
+        await supabase.from('users').insert({
+          id: user.id,
+          email: user.email,
+          first_name: firstName,
+          last_name: lastName,
+          role: 'MEMBER',
+          class_year: null,
+          profession: null,
+          phone: null
+        });
+
+        // Redirect to onboarding so they can fill out Class Year, Profession, etc.
+        return NextResponse.redirect(`${origin}/dashboard/onboarding`);
+      }
+      
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
