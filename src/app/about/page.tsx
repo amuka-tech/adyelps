@@ -7,10 +7,7 @@ export const metadata = {
 };
 
 export default function AboutPage() {
-  const leadership = [
-    { name: "Opio Haron Justine", role: "President", class: "Adyel", img: "OH" },
-    { name: "Aciro Sharon", role: "Vice President", class: "Adyel", img: "AS" },
-  ];
+  
 
   return (
     <div className="flex flex-col w-full">
@@ -71,33 +68,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Leadership */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Executive Committee</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Meet the dedicated team leading the Adyel Alumni Network.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            {leadership.map((leader, idx) => (
-              <div key={idx} className="text-center group">
-                <div className="w-40 h-40 mx-auto bg-gray-200 rounded-full mb-6 overflow-hidden relative shadow-md group-hover:shadow-xl transition-all">
-                  {/* Placeholder for image */}
-                  <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-gray-400 bg-gray-100 group-hover:bg-pink/20 group-hover:text-maroon transition-colors">
-                    {leader.img}
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">{leader.name}</h3>
-                <p className="text-maroon font-medium mb-1">{leader.role}</p>
-                <p className="text-sm text-gray-500">{leader.class}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      
     </div>
   );
 }
