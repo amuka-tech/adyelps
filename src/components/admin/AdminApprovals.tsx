@@ -20,24 +20,26 @@ export default function AdminApprovals({
           <p className="text-gray-500 font-medium">No pending contributions to verify.</p>
         </div>
       ) : (
-        <table className="w-full text-left">
-          <tbody className="divide-y divide-gray-50">
-            {contributions.map(c => (
-              <tr key={c.id}>
-                <td className="py-4">
-                  <p className="font-bold text-gray-900">{c.first_name} {c.last_name}</p>
-                  <p className="text-xs text-gray-500">{c.email}</p>
-                </td>
-                <td className="py-4 font-bold text-maroon text-lg">UGX {parseFloat(c.amount_gross).toLocaleString()}</td>
-                <td className="py-4 text-gray-500 text-sm">{c.payment_method}</td>
-                <td className="py-4 text-right space-x-2">
-                  <button onClick={() => handleVerifyContribution(c.id, 'VERIFIED')} className="bg-green-100 text-green-700 hover:bg-green-200 px-4 py-2 rounded-xl text-sm font-bold transition-colors">Verify</button>
-                  <button onClick={() => handleVerifyContribution(c.id, 'REJECTED')} className="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-xl text-sm font-bold transition-colors">Reject</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left min-w-[600px]">
+            <tbody className="divide-y divide-gray-50">
+              {contributions.map(c => (
+                <tr key={c.id}>
+                  <td className="py-4 whitespace-nowrap pr-4">
+                    <p className="font-bold text-gray-900">{c.first_name} {c.last_name}</p>
+                    <p className="text-xs text-gray-500">{c.email}</p>
+                  </td>
+                  <td className="py-4 font-bold text-maroon text-lg whitespace-nowrap pr-4">UGX {parseFloat(c.amount_gross).toLocaleString()}</td>
+                  <td className="py-4 text-gray-500 text-sm whitespace-nowrap pr-4">{c.payment_method}</td>
+                  <td className="py-4 text-right space-x-2 whitespace-nowrap">
+                    <button onClick={() => handleVerifyContribution(c.id, 'VERIFIED')} className="bg-green-100 text-green-700 hover:bg-green-200 px-4 py-2 rounded-xl text-sm font-bold transition-colors">Verify</button>
+                    <button onClick={() => handleVerifyContribution(c.id, 'REJECTED')} className="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-xl text-sm font-bold transition-colors">Reject</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

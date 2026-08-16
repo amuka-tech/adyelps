@@ -27,7 +27,7 @@ export default function AdminRates({ rates, fetchData }: { rates: any[], fetchDa
     <div>
       <h3 className="text-xl font-bold text-gray-900 mb-6">Manage Deduction Rates</h3>
       <form onSubmit={handleCreateRate} className="space-y-4 mb-10 border border-gray-100 p-6 rounded-2xl bg-gray-50">
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-500 mb-1">Rate Name</label>
             <input required type="text" placeholder="e.g. Platform Fee" value={rateForm.name} onChange={e => setRateForm({...rateForm, name: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none" />
@@ -44,27 +44,29 @@ export default function AdminRates({ rates, fetchData }: { rates: any[], fetchDa
             <input required type="number" step="0.01" value={rateForm.amount} onChange={e => setRateForm({...rateForm, amount: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none" />
           </div>
         </div>
-        <button type="submit" className="bg-gray-900 text-white font-medium px-6 py-2 rounded-lg hover:bg-black transition-colors">Add Rate</button>
+        <button type="submit" className="bg-gray-900 text-white font-medium px-6 py-2 rounded-lg hover:bg-black transition-colors w-full md:w-auto">Add Rate</button>
       </form>
 
-      <table className="w-full text-left">
-        <thead>
-          <tr className="text-gray-400 text-xs uppercase tracking-wider border-b border-gray-100">
-            <th className="pb-4 font-semibold">Name</th>
-            <th className="pb-4 font-semibold">Type</th>
-            <th className="pb-4 font-semibold">Value</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-50">
-          {rates.map(r => (
-            <tr key={r.id}>
-              <td className="py-4 font-bold text-gray-900">{r.name}</td>
-              <td className="py-4 text-sm text-gray-600">{r.rate_type}</td>
-              <td className="py-4 text-sm font-medium text-maroon">{r.rate_type === 'PERCENTAGE' ? `${r.amount}%` : `UGX ${r.amount}`}</td>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left min-w-[500px]">
+          <thead>
+            <tr className="text-gray-400 text-xs uppercase tracking-wider border-b border-gray-100">
+              <th className="pb-4 font-semibold">Name</th>
+              <th className="pb-4 font-semibold">Type</th>
+              <th className="pb-4 font-semibold">Value</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {rates.map(r => (
+              <tr key={r.id}>
+                <td className="py-4 font-bold text-gray-900 whitespace-nowrap pr-4">{r.name}</td>
+                <td className="py-4 text-sm text-gray-600 whitespace-nowrap pr-4">{r.rate_type}</td>
+                <td className="py-4 text-sm font-medium text-maroon whitespace-nowrap">{r.rate_type === 'PERCENTAGE' ? `${r.amount}%` : `UGX ${r.amount}`}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
