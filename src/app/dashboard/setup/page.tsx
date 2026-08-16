@@ -1,6 +1,7 @@
 import React from 'react';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 import SetupForm from './SetupForm';
 
 export const metadata = {
@@ -8,7 +9,8 @@ export const metadata = {
 };
 
 export default async function SetupPage() {
-  const supabase = createClient();
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
   const { data: { session } } = await supabase.auth.getSession();
   
   if (!session) {

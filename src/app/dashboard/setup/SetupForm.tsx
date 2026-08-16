@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 
-export default function SetupForm({ user }: { user: any }) {
+export default function SetupForm({ user }: { user: any }): any {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
