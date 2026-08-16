@@ -248,81 +248,67 @@ export default function SuperAdminDashboard() {
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 h-screen overflow-y-auto hide-scrollbar p-4 lg:p-8 relative">
+      <main className="flex-1 h-screen overflow-y-auto hide-scrollbar p-4 lg:p-8 pb-24 lg:pb-8 relative">
         
         {/* HEADER */}
-        <header className="flex justify-between items-center mb-6 lg:mb-10 sticky top-0 bg-[#f4f7f6]/80 backdrop-blur-xl z-30 py-4 -mx-4 px-4 lg:-mx-8 lg:px-8 shadow-[0_4px_30px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center gap-3 lg:hidden">
-            <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 -ml-2 bg-white rounded-lg shadow-sm border border-gray-100 text-gray-700">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
+        <header className="flex justify-between items-center mb-6 lg:mb-10 sticky top-0 bg-[#f4f7f6]/80 backdrop-blur-xl z-30 py-3 -mx-4 px-4 lg:-mx-8 lg:px-8 border-b border-gray-100/50">
+          <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-maroon rounded-full flex items-center justify-center text-white font-bold text-sm">A</div>
-          </div>
-          
-          <div className="relative w-full max-w-md hidden md:block">
-            <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <input type="text" placeholder="Search data globally..." value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-white/60 focus:bg-white border border-gray-200 rounded-full py-2.5 pl-12 pr-4 shadow-sm text-sm focus:ring-2 focus:ring-maroon/20 outline-none transition-all hover:border-gray-300" />
-          </div>
-          
-          <div className="flex items-center gap-4 ml-auto">
-            <div className="flex items-center gap-3 bg-white pl-1.5 pr-4 py-1.5 rounded-full shadow-sm cursor-pointer border border-gray-100 hover:border-maroon/30 transition-all group">
-              <div className="w-8 h-8 rounded-full bg-pink text-maroon flex items-center justify-center font-bold text-sm shadow-inner group-hover:scale-105 transition-transform">S</div>
-              <div className="flex flex-col hidden sm:flex">
-                <span className="text-sm font-bold text-gray-800 leading-none group-hover:text-maroon transition-colors">System Admin</span>
-                <span className="text-[10px] text-gray-400 font-medium">superadmin@adyel.com</span>
-              </div>
+            <span className="font-bold text-gray-900 lg:hidden">Admin Panel</span>
+            {/* desktop search */}
+            <div className="relative w-full max-w-md hidden lg:block ml-4">
+              <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <input type="text" placeholder="Search data globally..." value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-white/60 focus:bg-white border border-gray-200 rounded-full py-2.5 pl-12 pr-4 shadow-sm text-sm focus:ring-2 focus:ring-maroon/20 outline-none transition-all hover:border-gray-300" />
             </div>
+          </div>
+          <div className="flex items-center gap-3 bg-white pl-1.5 pr-3 py-1.5 rounded-full shadow-sm border border-gray-100">
+            <div className="w-7 h-7 rounded-full bg-pink text-maroon flex items-center justify-center font-bold text-xs">S</div>
+            <span className="text-sm font-bold text-gray-800 hidden sm:block">System Admin</span>
           </div>
         </header>
 
         {/* TITLE AREA */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Dashboard</h1>
-            <p className="text-gray-500 text-sm">Manage the Adyel Alumni Platform.</p>
-          </div>
-          <div className="relative w-full md:hidden">
-            <svg className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <input type="text" placeholder="Search globally..." value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-12 pr-4 shadow-sm text-sm focus:ring-2 focus:ring-maroon/20 outline-none" />
-          </div>
+        <div className="mb-6">
+          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-0.5">Dashboard</h1>
+          <p className="text-gray-500 text-xs lg:text-sm">Manage the Adyel Alumni Platform.</p>
         </div>
 
         {/* KPI CARDS ROW */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-maroon to-red-900 text-white p-6 rounded-3xl shadow-lg shadow-maroon/20 relative overflow-hidden group">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6 mb-8">
+          <div className="bg-gradient-to-br from-maroon to-red-900 text-white p-4 lg:p-6 rounded-3xl shadow-lg shadow-maroon/20 relative overflow-hidden group">
             <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-            <p className="text-white/80 text-sm font-medium mb-2">Total Platform Users</p>
-            <h2 className="text-4xl font-extrabold mb-4 drop-shadow-sm">{stats?.total_users || 0}</h2>
-            <div className="flex items-center text-xs font-bold text-green-300">
+            <p className="text-white/80 text-xs lg:text-sm font-medium mb-2">Total Platform Users</p>
+            <h2 className="text-2xl lg:text-4xl font-extrabold mb-4 drop-shadow-sm">{stats?.total_users || 0}</h2>
+            <div className="flex items-center text-[10px] lg:text-xs font-bold text-green-300">
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
               Updated just now
             </div>
           </div>
           
-          <div className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:border-blue-200 transition-colors">
+          <div className="bg-gradient-to-br from-white to-gray-50 p-4 lg:p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:border-blue-200 transition-colors">
             <div className="absolute -right-6 -top-6 w-32 h-32 bg-blue-50 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-            <p className="text-gray-500 text-sm font-medium mb-2 relative z-10">Pending Jobs</p>
-            <h2 className="text-4xl font-extrabold text-gray-900 mb-4 relative z-10">{pendingJobs.length}</h2>
-            <div className="flex items-center text-xs font-bold text-blue-500 relative z-10">Requires moderation</div>
+            <p className="text-gray-500 text-xs lg:text-sm font-medium mb-2 relative z-10">Pending Jobs</p>
+            <h2 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-4 relative z-10">{pendingJobs.length}</h2>
+            <div className="flex items-center text-[10px] lg:text-xs font-bold text-blue-500 relative z-10">Requires moderation</div>
           </div>
 
-          <div className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:border-yellow-200 transition-colors">
+          <div className="bg-gradient-to-br from-white to-gray-50 p-4 lg:p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:border-yellow-200 transition-colors">
             <div className="absolute -right-6 -top-6 w-32 h-32 bg-yellow-50 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-            <p className="text-gray-500 text-sm font-medium mb-2 relative z-10">Pending Funds</p>
-            <h2 className="text-4xl font-extrabold text-gray-900 mb-4 relative z-10">{contributions.length}</h2>
-            <div className="flex items-center text-xs font-bold text-yellow-500 relative z-10">Awaiting verification</div>
+            <p className="text-gray-500 text-xs lg:text-sm font-medium mb-2 relative z-10">Pending Funds</p>
+            <h2 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-4 relative z-10">{contributions.length}</h2>
+            <div className="flex items-center text-[10px] lg:text-xs font-bold text-yellow-500 relative z-10">Awaiting verification</div>
           </div>
 
-          <div className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:border-green-200 transition-colors">
+          <div className="bg-gradient-to-br from-white to-gray-50 p-4 lg:p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:border-green-200 transition-colors">
             <div className="absolute -right-6 -top-6 w-32 h-32 bg-green-50 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-            <p className="text-gray-500 text-sm font-medium mb-2 relative z-10">Active Businesses</p>
-            <h2 className="text-4xl font-extrabold text-gray-900 mb-4 relative z-10">{activeBusinesses.length}</h2>
-            <div className="flex items-center text-xs font-bold text-green-500 relative z-10">In the directory</div>
+            <p className="text-gray-500 text-xs lg:text-sm font-medium mb-2 relative z-10">Active Businesses</p>
+            <h2 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-4 relative z-10">{activeBusinesses.length}</h2>
+            <div className="flex items-center text-[10px] lg:text-xs font-bold text-green-500 relative z-10">In the directory</div>
           </div>
         </div>
 
         {/* DYNAMIC CONTENT AREA */}
-        <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 min-h-[500px]">
+        <div className="bg-white rounded-2xl lg:rounded-[2rem] p-4 lg:p-8 shadow-sm border border-gray-100 min-h-[400px]">
           {activeTab === 'users' && <AdminUsers users={users} search={search} setSearch={setSearch} handleRoleChange={handleRoleChange} handleStatusChange={handleStatusChange} />}
           {activeTab === 'jobs' && <AdminJobs pendingJobs={pendingJobs} handleModerateJob={handleModerateJob} />}
           {activeTab === 'businesses' && <AdminBusinesses pendingBusinesses={pendingBusinesses} handleModerateBusiness={handleModerateBusiness} />}
@@ -369,6 +355,55 @@ export default function SuperAdminDashboard() {
 
         </div>
       </main>
+
+      {/* MOBILE MORE DRAWER */}
+      {isMoreOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex flex-col justify-end">
+          <div className="flex-1 bg-black/50" onClick={() => setIsMoreOpen(false)} />
+          <div className="bg-white rounded-t-3xl shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-gray-200 rounded-full" />
+            </div>
+            <div className="px-4 pt-2 pb-4">
+              <input type="text" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-4 text-sm outline-none mb-4" />
+            </div>
+            <div className="px-4 pb-safe">
+              {/* Group 1: Governance */}
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2">Governance</p>
+              {[['governance','Governance Mgmt'],['users','Role Management'],['audit','Audit Trail'],['settings','Settings']].map(([id,label]) => (
+                <button key={id} onClick={() => { setActiveTab(id); setIsMoreOpen(false); }} className={`w-full text-left px-4 py-3 rounded-xl mb-1 font-medium text-sm ${activeTab === id ? 'bg-maroon text-white' : 'text-gray-700 hover:bg-gray-50'}`}>{label}</button>
+              ))}
+              {/* Group 2: Welfare */}
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2 mt-4">Welfare</p>
+              {[['approvals','Fund Approvals'],['obituaries','Obituaries'],['condolences','Condolences'],['rates','Tax Rates']].map(([id,label]) => (
+                <button key={id} onClick={() => { setActiveTab(id); setIsMoreOpen(false); }} className={`w-full text-left px-4 py-3 rounded-xl mb-1 font-medium text-sm ${activeTab === id ? 'bg-maroon text-white' : 'text-gray-700 hover:bg-gray-50'}`}>{label}</button>
+              ))}
+              {/* Group 3: Network */}
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2 mt-4">Network & Content</p>
+              {[['jobs','Job Moderation'],['businesses','Biz Moderation'],['news','News Articles'],['events','Events & Ticketing'],['projects','Projects'],['shop_products','Shop Inventory'],['shop_orders','Shop Orders']].map(([id,label]) => (
+                <button key={id} onClick={() => { setActiveTab(id); setIsMoreOpen(false); }} className={`w-full text-left px-4 py-3 rounded-xl mb-1 font-medium text-sm ${activeTab === id ? 'bg-maroon text-white' : 'text-gray-700 hover:bg-gray-50'}`}>{label}</button>
+              ))}
+              <div className="mt-6 pb-6">
+                <button onClick={() => window.location.href = '/'} className="w-full bg-gray-900 text-white py-3 rounded-xl font-bold text-sm">Exit to Public Site</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MOBILE BOTTOM NAV */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] flex items-center justify-around px-1 py-2">
+        {[['analytics','Dashboard','M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z'],['users','Members','M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'],['approvals','Approvals','M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],['news','Content','M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15']].map(([id, label, path]) => (
+        <button key={id} onClick={() => setActiveTab(id)} className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors relative ${activeTab === id ? 'text-maroon' : 'text-gray-400'}`}>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={path}></path></svg>
+          <span className="text-[10px] font-semibold">{label}</span>
+        </button>
+      ))}
+        <button onClick={() => setIsMoreOpen(true)} className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors ${isMoreOpen ? 'text-maroon' : 'text-gray-400'}`}>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          <span className="text-[10px] font-semibold">More</span>
+        </button>
+      </nav>
     </div>
   );
 }
