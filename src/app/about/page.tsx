@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 export const metadata = {
   title: 'About Us | Adyel Alumni',
-  description: 'Learn about the history of Adyel Adyel and the mission of our Alumni Network.',
+  description: 'Learn about the history of the Adyel Alumni Network and our mission to unite former pupils.',
 };
 
 export default function AboutPage() {
@@ -12,11 +12,13 @@ export default function AboutPage() {
   return (
     <div className="flex flex-col w-full">
       {/* Page Header */}
-      <section className="bg-maroon py-20 text-white text-center">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">About Us</h1>
-        <p className="text-xl text-pink max-w-2xl mx-auto px-4">
-          Preserving our shared heritage and uniting former pupils.
-        </p>
+      <section className="bg-darkblue py-16 text-center text-white">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">About Us</h1>
+          <p className="text-xl text-skyblue max-w-2xl mx-auto">
+            Preserving our shared heritage and uniting former pupils.
+          </p>
+        </div>
       </section>
 
       {/* History Section */}
