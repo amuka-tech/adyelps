@@ -34,10 +34,10 @@ export async function GET(request: NextRequest) {
     if (!error && authData?.session) {
       const user = authData.session.user;
       
-      // Check if user already exists in public.users
+      // Check if user already exists in public.users and what their profile status is
       const { data: existingUser } = await supabase
         .from('users')
-        .select('id')
+        .select('id, class_year, profession, phone')
         .eq('id', user.id)
         .maybeSingle();
         
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
         const firstName = user.user_metadata?.firstName || nameParts[0] || 'Alumni';
         const lastName = user.user_metadata?.lastName || (nameParts.length > 1 ? nameParts.slice(1).join(' ') : 'Member');
         
-        // Insert missing profile
+        // Insert missing profile (Fallback just in case DB trigger didn't run)
         await supabase.from('users').insert({
           id: user.id,
           email: user.email,
@@ -60,8 +60,11 @@ export async function GET(request: NextRequest) {
           phone: null
         });
 
-        // Redirect to onboarding so they can fill out Class Year, Profession, etc.
-        return NextResponse.redirect(`${origin}/dashboard/onboarding`);
+        // Redirect to setup so they can fill out Class Year, Profession, etc.
+        return NextResponse.redirect(`${origin}/dashboard/setup`);
+      } else if (!existingUser.class_year || !existingUser.profession) {
+        // User exists (via trigger) but hasn't completed their profile
+        return NextResponse.redirect(`${origin}/dashboard/setup`);
       }
       
       return NextResponse.redirect(`${origin}${next}`);
