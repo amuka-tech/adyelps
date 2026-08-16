@@ -28,15 +28,23 @@ export default function ProfilePage() {
           return;
         }
 
-        const [userRes, prefsRes] = await Promise.all([
-          supabase.from('users').select('*').eq('id', session.user.id).single(),
-          supabase.from('user_preferences').select('*').eq('user_id', session.user.id).single()
-        ]);
-        
-        if (userRes.data) setUser(userRes.data);
+        const { data: userRes, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+          
+        if (userError) throw userError;
+        setUser(userRes);
 
-        if (prefsRes.data) {
-          setPreferences(prefsRes.data);
+        const { data: prefsRes } = await supabase
+          .from('user_preferences')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+
+        if (prefsRes) {
+          setPreferences(prefsRes);
         }
       } catch (error) {
         console.error("Failed to fetch session", error);
@@ -57,7 +65,7 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
-  const initials = `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase();
+  const initials = `${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`.toUpperCase();
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -125,11 +133,11 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">First Name</label>
-                    <input type="text" defaultValue={user.firstName} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-maroon focus:border-maroon bg-gray-50 focus:bg-white transition-colors outline-none" />
+                    <input type="text" defaultValue={user.first_name} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-maroon focus:border-maroon bg-gray-50 focus:bg-white transition-colors outline-none" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Last Name</label>
-                    <input type="text" defaultValue={user.lastName} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-maroon focus:border-maroon bg-gray-50 focus:bg-white transition-colors outline-none" />
+                    <input type="text" defaultValue={user.last_name} className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-maroon focus:border-maroon bg-gray-50 focus:bg-white transition-colors outline-none" />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Email Address</label>
@@ -365,7 +373,10 @@ export default function ProfilePage() {
                       setSavedMessage('');
                       try {
                         const supabase = createClient();
-                        const { error } = await supabase.from('user_preferences').update(preferences).eq('user_id', user.id);
+                        const { error } = await supabase.from('user_preferences').upsert({
+                          user_id: user.id,
+                          ...preferences
+                        }, { onConflict: 'user_id' });
                         if (!error) {
                           setSavedMessage('Preferences updated successfully!');
                           setTimeout(() => setSavedMessage(''), 3000);
