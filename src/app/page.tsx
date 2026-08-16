@@ -5,10 +5,17 @@ import { Button } from '@/components/Button';
 import { Card, CardContent } from '@/components/Card';
 import { createClient } from '@/utils/supabase/server';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 export const revalidate = 0; // Ensures it's always dynamic (or remove if using unstable_noStore)
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  // Catch misconfigured Supabase OAuth redirects that land on the homepage instead of /auth/callback
+  const resolvedParams = await searchParams;
+  if (resolvedParams?.code) {
+    redirect(`/auth/callback?code=${resolvedParams.code}`);
+  }
+
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
   
