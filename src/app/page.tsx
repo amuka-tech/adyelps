@@ -67,9 +67,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
   ];
 
   const defaultItems = [
-    { type: "Event", title: "Annual Family Picnic 2026", created_at: "2026-08-15T00:00:00.000Z", desc: "Join us for a fun-filled day with family and old friends at the school playground.", id: "1" },
-    { type: "News", title: "New Computer Lab Commissioned", created_at: "2026-05-20T00:00:00.000Z", desc: "Thanks to alumni contributions, a new state-of-the-art lab is now open.", id: "1" },
-    { type: "Event", title: "AGM & Elections 2026", created_at: "2026-12-05T00:00:00.000Z", desc: "Annual General Meeting to elect the new Executive Committee.", id: "2" }
+    { type: "Event", title: "Annual Family Picnic 2026", created_at: "2026-08-15T00:00:00.000Z", desc: "Join us for a fun-filled day with family and old friends at the school playground.", id: "1", image_url: null },
+    { type: "News", title: "Adyel Alumni Association Launches New Portal", created_at: "2026-08-15T00:00:00.000Z", desc: "We are excited to announce the launch of our new alumni portal.", id: "1", image_url: null },
+    { type: "Event", title: "AGM & Elections 2026", created_at: "2026-12-05T00:00:00.000Z", desc: "Annual General Meeting to elect the new Executive Committee.", id: "2", image_url: null }
   ];
 
   const displayItems = newsEvents.length > 0 ? newsEvents : defaultItems;
