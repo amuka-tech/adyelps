@@ -274,7 +274,8 @@ export default function SuperAdminDashboard() {
             <p className="text-gray-400 text-xs lg:text-sm">Manage the Adyel Alumni Platform.</p>
           </div>
 
-          {/* KPI CARDS ROW */}
+          {/* KPI CARDS ROW — only shown on Analytics tab */}
+          {activeTab === 'analytics' && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-6 mb-4 lg:mb-8">
             <div className="bg-maroon text-white p-3 lg:p-6 rounded-2xl lg:rounded-3xl relative overflow-hidden">
               <p className="text-white/80 text-xs font-medium mb-1">Total Users</p>
@@ -300,6 +301,7 @@ export default function SuperAdminDashboard() {
               <p className="text-[10px] text-green-500 font-bold mt-1">In directory</p>
             </div>
           </div>
+          )}
 
           {/* DYNAMIC CONTENT AREA */}
           <div className="bg-white lg:bg-white rounded-none lg:rounded-[2rem] p-0 lg:p-8 lg:shadow-sm lg:border lg:border-gray-100 min-h-[400px]">
