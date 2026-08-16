@@ -4,37 +4,13 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export function Navbar() {
-  const [user, setUser] = useState<any>(null);
+export function Navbar({ serverUser }: { serverUser?: any }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
   const pathname = usePathname();
-
-  useEffect(() => {
-    async function checkSession() {
-      try {
-        const { createClient } = await import('@/utils/supabase/client');
-        const supabase = createClient();
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          const { data: userData } = await supabase
-            .from('users')
-            .select('id, first_name, last_name, email, role')
-            .eq('id', session.user.id)
-            .single();
-          if (userData) {
-            setUser({ ...userData, firstName: userData.first_name, lastName: userData.last_name });
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch session", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    checkSession();
-  }, []);
+  
+  // No loading state needed, serverUser is instantly available
+  const user = serverUser;
 
   const handleLogout = async () => {
     const { createClient } = await import('@/utils/supabase/client');
@@ -94,14 +70,14 @@ export function Navbar() {
 
         {/* ACTIONS */}
         <div className="flex items-center space-x-4">
-          {!loading && !user ? (
+          {!user ? (
             <div className="hidden md:flex items-center gap-3">
               <Link href="/login" className="text-gray-700 font-bold hover:text-maroon transition-colors text-sm px-4">Log in</Link>
               <Link href="/register" className="bg-maroon text-white px-6 py-2.5 rounded-full font-bold text-sm hover:bg-maroon-dark transition-all shadow-md shadow-maroon/20 hover:shadow-lg hover:-translate-y-0.5">
                 Join Network
               </Link>
             </div>
-          ) : !loading && user ? (
+          ) : user ? (
             <div className="relative">
               <button 
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -156,7 +132,7 @@ export function Navbar() {
               </Link>
             )
           })}
-          {!loading && !user && (
+          {!user && (
             <div className="pt-4 mt-2 border-t border-gray-100 flex flex-col gap-2">
               <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center bg-gray-50 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-100">Log in</Link>
               <Link href="/register" onClick={() => setIsMobileMenuOpen(false)} className="w-full text-center bg-maroon text-white font-bold py-3 rounded-xl hover:bg-maroon-dark">Join Network</Link>

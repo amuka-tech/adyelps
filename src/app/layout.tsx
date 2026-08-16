@@ -28,16 +28,35 @@ export const viewport = {
   maximumScale: 1,
 };
 
-export default function RootLayout({
+import { createClient } from '@/utils/supabase/server';
+import { cookies } from 'next/headers';
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  
+  let user = null;
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    const { data: userData } = await supabase
+      .from('users')
+      .select('id, first_name, last_name, email, role')
+      .eq('id', session.user.id)
+      .single();
+    if (userData) {
+      user = { ...userData, firstName: userData.first_name, lastName: userData.last_name };
+    }
+  }
+
   return (
     <html lang="en" className={`${outfit.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans">
         <PWAInstallProvider />
-        <Navbar />
+        <Navbar serverUser={user} />
         <main className="flex-1">
           {children}
         </main>
