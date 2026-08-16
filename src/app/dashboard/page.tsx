@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
 import { createClient } from '@/utils/supabase/client';
+import ProfileProgress from '@/components/dashboard/ProfileProgress';
 
 export default function OverviewPage() {
   const [user, setUser] = useState<any>(null);
@@ -43,6 +44,7 @@ export default function OverviewPage() {
 
   return (
     <div className="animate-in fade-in duration-500">
+      <ProfileProgress user={user} />
       {/* MODALS */}
       {showIdModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
