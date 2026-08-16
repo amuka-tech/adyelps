@@ -12,35 +12,39 @@ export default function AdminAnalytics() {
       try {
         const supabase = createClient();
         
-        // Users
-        const { count: totalUsers } = await supabase.from('users').select('*', { count: 'exact', head: true });
-        const { count: pendingUsers } = await supabase.from('users').select('*', { count: 'exact', head: true }).eq('account_status', 'PENDING');
-        
-        // Engagement
-        const { count: totalMessages } = await supabase.from('messages').select('*', { count: 'exact', head: true });
-        const { count: totalEvents } = await supabase.from('events').select('*', { count: 'exact', head: true });
-        const { count: totalBusinesses } = await supabase.from('businesses').select('*', { count: 'exact', head: true });
-        
-        // Financial & Recent Activity (Naively fetch recent ones to avoid complex client-side sums or RPCs, or assume some default values if tables don't match)
-        const { data: shopOrders } = await supabase.from('shop_orders').select('id, total_amount, status, created_at').order('created_at', { ascending: false }).limit(20);
-        const { data: contributions } = await supabase.from('contributions').select('id, amount, status, created_at').order('created_at', { ascending: false }).limit(20);
-        // Fallback for events/tickets, if 'ticket_purchases' exists, else 0.
-        const { data: ticketPurchases } = await supabase.from('ticket_purchases').select('id, amount, status, created_at').order('created_at', { ascending: false }).limit(20);
+        // Run ALL queries in parallel — no waiting one by one
+        const [
+          { count: totalUsers },
+          { count: pendingUsers },
+          { count: totalMessages },
+          { count: totalEvents },
+          { count: totalBusinesses },
+          { data: shopOrders },
+          { data: contributions },
+          { data: eventRegs },
+        ] = await Promise.all([
+          supabase.from('users').select('*', { count: 'exact', head: true }),
+          supabase.from('users').select('*', { count: 'exact', head: true }).eq('account_status', 'PENDING'),
+          supabase.from('messages').select('*', { count: 'exact', head: true }),
+          supabase.from('events').select('*', { count: 'exact', head: true }),
+          supabase.from('businesses').select('*', { count: 'exact', head: true }),
+          supabase.from('shop_orders').select('id, total_amount, status, created_at').order('created_at', { ascending: false }).limit(20),
+          supabase.from('contributions').select('id, amount, status, created_at').order('created_at', { ascending: false }).limit(20),
+          supabase.from('event_registrations').select('id, created_at').order('created_at', { ascending: false }).limit(20),
+        ]);
 
-        const shop = shopOrders?.reduce((sum, curr) => curr.status === 'PAID' ? sum + (Number(curr.total_amount) || 0) : sum, 0) || 0;
-        const welfare = contributions?.reduce((sum, curr) => curr.status === 'SUCCESS' ? sum + (Number(curr.amount) || 0) : sum, 0) || 0;
-        const events = ticketPurchases?.reduce((sum, curr) => curr.status === 'SUCCESS' ? sum + (Number(curr.amount) || 0) : sum, 0) || 0;
+        const shop = shopOrders?.reduce((sum, o) => o.status === 'PAID' ? sum + (Number(o.total_amount) || 0) : sum, 0) || 0;
+        const welfare = contributions?.reduce((sum, c) => c.status === 'SUCCESS' ? sum + (Number(c.amount) || 0) : sum, 0) || 0;
 
         const activity = [
           ...(shopOrders || []).map(tx => ({ id: tx.id, type: 'SHOP_ORDER', amount: tx.total_amount, status: tx.status, created_at: tx.created_at })),
-          ...(ticketPurchases || []).map(tx => ({ id: tx.id, type: 'EVENT_TICKET', amount: tx.amount, status: tx.status, created_at: tx.created_at })),
-          ...(contributions || []).map(tx => ({ id: tx.id, type: 'WELFARE_CONTRIB', amount: tx.amount, status: tx.status, created_at: tx.created_at }))
+          ...(contributions || []).map(tx => ({ id: tx.id, type: 'WELFARE_CONTRIB', amount: tx.amount, status: tx.status, created_at: tx.created_at })),
         ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 10);
 
         setData({
           userMetrics: { totalUsers: totalUsers || 0, pendingUsers: pendingUsers || 0 },
           engagementMetrics: { totalMessages: totalMessages || 0, totalEvents: totalEvents || 0, totalBusinesses: totalBusinesses || 0 },
-          financialMetrics: { totalRevenue: shop + events + welfare, breakdown: { shop, events, welfare } },
+          financialMetrics: { totalRevenue: shop + welfare, breakdown: { shop, events: 0, welfare } },
           recentActivity: activity
         });
       } catch (error) {
