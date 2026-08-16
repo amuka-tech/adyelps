@@ -192,7 +192,7 @@ export default function SuperAdminDashboard() {
   );
 
   return (
-    <div className="h-screen w-full flex bg-[#f4f7f6] text-gray-800 font-sans overflow-hidden relative">
+    <div className="h-screen w-full flex bg-white lg:bg-[#f4f7f6] text-gray-800 font-sans overflow-hidden relative">
 
       {/* SIDEBAR */}
       <aside className="hidden lg:flex flex-col w-64 h-[calc(100vh-2rem)] bg-white m-4 rounded-[2rem] shadow-sm overflow-y-auto hide-scrollbar border border-gray-100">
@@ -248,10 +248,10 @@ export default function SuperAdminDashboard() {
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 h-screen overflow-y-auto hide-scrollbar p-4 lg:p-8 pb-24 lg:pb-8 relative">
+      <main className="flex-1 h-screen overflow-y-auto hide-scrollbar px-0 lg:p-8 pb-24 lg:pb-8 relative">
         
         {/* HEADER */}
-        <header className="flex justify-between items-center mb-6 lg:mb-10 sticky top-0 bg-[#f4f7f6]/80 backdrop-blur-xl z-30 py-3 -mx-4 px-4 lg:-mx-8 lg:px-8 border-b border-gray-100/50">
+        <header className="flex justify-between items-center mb-4 lg:mb-10 sticky top-0 bg-white lg:bg-[#f4f7f6]/80 backdrop-blur-xl z-30 py-3 px-4 lg:px-8 border-b border-gray-100 lg:border-none">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-maroon rounded-full flex items-center justify-center text-white font-bold text-sm">A</div>
             <span className="font-bold text-gray-900 lg:hidden">Admin Panel</span>
@@ -261,54 +261,48 @@ export default function SuperAdminDashboard() {
               <input type="text" placeholder="Search data globally..." value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-white/60 focus:bg-white border border-gray-200 rounded-full py-2.5 pl-12 pr-4 shadow-sm text-sm focus:ring-2 focus:ring-maroon/20 outline-none transition-all hover:border-gray-300" />
             </div>
           </div>
-          <div className="flex items-center gap-3 bg-white pl-1.5 pr-3 py-1.5 rounded-full shadow-sm border border-gray-100">
-            <div className="w-7 h-7 rounded-full bg-pink text-maroon flex items-center justify-center font-bold text-xs">S</div>
+          <div className="flex items-center gap-2 bg-gray-50 pl-1.5 pr-3 py-1.5 rounded-full border border-gray-100">
+            <div className="w-7 h-7 rounded-full bg-maroon text-white flex items-center justify-center font-bold text-xs">S</div>
             <span className="text-sm font-bold text-gray-800 hidden sm:block">System Admin</span>
           </div>
         </header>
 
-        {/* TITLE AREA */}
-        <div className="mb-6">
-          <h1 className="text-xl lg:text-3xl font-bold text-gray-900 mb-0.5">Dashboard</h1>
-          <p className="text-gray-500 text-xs lg:text-sm">Manage the Adyel Alumni Platform.</p>
-        </div>
+        <div className="px-4 lg:px-0">
+          {/* TITLE AREA */}
+          <div className="mb-4 lg:mb-6">
+            <h1 className="text-lg lg:text-3xl font-bold text-gray-900 mb-0.5">Dashboard</h1>
+            <p className="text-gray-400 text-xs lg:text-sm">Manage the Adyel Alumni Platform.</p>
+          </div>
 
-        {/* KPI CARDS ROW */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-6 mb-8">
-          <div className="bg-gradient-to-br from-maroon to-red-900 text-white p-4 lg:p-6 rounded-3xl shadow-lg shadow-maroon/20 relative overflow-hidden group">
-            <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-            <p className="text-white/80 text-xs lg:text-sm font-medium mb-2">Total Platform Users</p>
-            <h2 className="text-2xl lg:text-4xl font-extrabold mb-4 drop-shadow-sm">{stats?.total_users || 0}</h2>
-            <div className="flex items-center text-[10px] lg:text-xs font-bold text-green-300">
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-              Updated just now
+          {/* KPI CARDS ROW */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-6 mb-4 lg:mb-8">
+            <div className="bg-maroon text-white p-3 lg:p-6 rounded-2xl lg:rounded-3xl relative overflow-hidden">
+              <p className="text-white/80 text-xs font-medium mb-1">Total Users</p>
+              <h2 className="text-2xl lg:text-4xl font-extrabold">{stats?.total_users || 0}</h2>
+              <p className="text-[10px] text-green-300 font-bold mt-1">Updated now</p>
+            </div>
+            
+            <div className="bg-gray-50 p-3 lg:p-6 rounded-2xl lg:rounded-3xl border border-gray-100">
+              <p className="text-gray-500 text-xs font-medium mb-1">Pending Jobs</p>
+              <h2 className="text-2xl lg:text-4xl font-extrabold text-gray-900">{pendingJobs.length}</h2>
+              <p className="text-[10px] text-blue-500 font-bold mt-1">Needs moderation</p>
+            </div>
+
+            <div className="bg-gray-50 p-3 lg:p-6 rounded-2xl lg:rounded-3xl border border-gray-100">
+              <p className="text-gray-500 text-xs font-medium mb-1">Pending Funds</p>
+              <h2 className="text-2xl lg:text-4xl font-extrabold text-gray-900">{contributions.length}</h2>
+              <p className="text-[10px] text-yellow-500 font-bold mt-1">Awaiting verify</p>
+            </div>
+
+            <div className="bg-gray-50 p-3 lg:p-6 rounded-2xl lg:rounded-3xl border border-gray-100">
+              <p className="text-gray-500 text-xs font-medium mb-1">Active Biz</p>
+              <h2 className="text-2xl lg:text-4xl font-extrabold text-gray-900">{activeBusinesses.length}</h2>
+              <p className="text-[10px] text-green-500 font-bold mt-1">In directory</p>
             </div>
           </div>
-          
-          <div className="bg-gradient-to-br from-white to-gray-50 p-4 lg:p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:border-blue-200 transition-colors">
-            <div className="absolute -right-6 -top-6 w-32 h-32 bg-blue-50 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-            <p className="text-gray-500 text-xs lg:text-sm font-medium mb-2 relative z-10">Pending Jobs</p>
-            <h2 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-4 relative z-10">{pendingJobs.length}</h2>
-            <div className="flex items-center text-[10px] lg:text-xs font-bold text-blue-500 relative z-10">Requires moderation</div>
-          </div>
 
-          <div className="bg-gradient-to-br from-white to-gray-50 p-4 lg:p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:border-yellow-200 transition-colors">
-            <div className="absolute -right-6 -top-6 w-32 h-32 bg-yellow-50 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-            <p className="text-gray-500 text-xs lg:text-sm font-medium mb-2 relative z-10">Pending Funds</p>
-            <h2 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-4 relative z-10">{contributions.length}</h2>
-            <div className="flex items-center text-[10px] lg:text-xs font-bold text-yellow-500 relative z-10">Awaiting verification</div>
-          </div>
-
-          <div className="bg-gradient-to-br from-white to-gray-50 p-4 lg:p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group hover:border-green-200 transition-colors">
-            <div className="absolute -right-6 -top-6 w-32 h-32 bg-green-50 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
-            <p className="text-gray-500 text-xs lg:text-sm font-medium mb-2 relative z-10">Active Businesses</p>
-            <h2 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-4 relative z-10">{activeBusinesses.length}</h2>
-            <div className="flex items-center text-[10px] lg:text-xs font-bold text-green-500 relative z-10">In the directory</div>
-          </div>
-        </div>
-
-        {/* DYNAMIC CONTENT AREA */}
-        <div className="bg-white rounded-2xl lg:rounded-[2rem] p-4 lg:p-8 shadow-sm border border-gray-100 min-h-[400px]">
+          {/* DYNAMIC CONTENT AREA */}
+          <div className="bg-white lg:bg-white rounded-none lg:rounded-[2rem] p-0 lg:p-8 lg:shadow-sm lg:border lg:border-gray-100 min-h-[400px]">
           {activeTab === 'users' && <AdminUsers users={users} search={search} setSearch={setSearch} handleRoleChange={handleRoleChange} handleStatusChange={handleStatusChange} />}
           {activeTab === 'jobs' && <AdminJobs pendingJobs={pendingJobs} handleModerateJob={handleModerateJob} />}
           {activeTab === 'businesses' && <AdminBusinesses pendingBusinesses={pendingBusinesses} handleModerateBusiness={handleModerateBusiness} />}
@@ -352,6 +346,8 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
           )}
+
+        </div>
 
         </div>
       </main>
