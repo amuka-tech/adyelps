@@ -45,6 +45,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     fetchUser();
   }, []);
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   if (loading) return <div className="h-screen flex items-center justify-center bg-[#f4f7f6] text-gray-500 font-medium">Loading Lounge...</div>;
   if (!user) return null;
 
@@ -53,6 +55,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <Link 
         href={href}
+        onClick={() => setIsMobileMenuOpen(false)}
         className={`w-full flex items-center justify-between px-4 py-3 mb-1.5 rounded-2xl transition-all duration-300 font-medium text-sm group ${isActive ? 'bg-maroon text-white shadow-md shadow-maroon/20 translate-x-1' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1'}`}
       >
         <div className="flex items-center gap-3">
@@ -78,15 +81,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="h-screen w-full flex bg-[#f4f7f6] text-gray-800 font-sans overflow-hidden">
+    <div className="h-screen w-full flex bg-[#f4f7f6] text-gray-800 font-sans overflow-hidden relative">
       
+      {/* MOBILE OVERLAY */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        ></div>
+      )}
+
       {/* SIDEBAR */}
-      <aside className="w-64 h-[calc(100vh-2rem)] bg-white m-4 rounded-[2rem] shadow-sm flex flex-col overflow-y-auto hide-scrollbar border border-gray-100 flex-shrink-0">
-        <div className="p-8 flex items-center gap-3">
-          <div className="w-10 h-10 bg-maroon rounded-full flex items-center justify-center text-white font-bold text-xl">
-            {user.firstName ? user.firstName[0] : 'A'}
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 h-[calc(100vh-2rem)] bg-white m-4 rounded-[2rem] shadow-lg lg:shadow-sm flex flex-col overflow-y-auto hide-scrollbar border border-gray-100 flex-shrink-0 transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-[150%] lg:translate-x-0'}`}>
+        <div className="p-8 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-maroon rounded-full flex items-center justify-center text-white font-bold text-xl">
+              {user.firstName ? user.firstName[0] : 'A'}
+            </div>
+            <span className="font-bold text-xl text-gray-900">Members</span>
           </div>
-          <span className="font-bold text-xl text-gray-900">Members</span>
+          <button className="lg:hidden text-gray-400 hover:text-gray-900" onClick={() => setIsMobileMenuOpen(false)}>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
         </div>
 
         <div className="px-4 flex-1">
@@ -138,25 +154,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="flex-1 h-screen overflow-y-auto hide-scrollbar p-4 lg:p-8 relative">
         
         {/* HEADER */}
-        <header className="flex justify-between items-center mb-10 sticky top-0 bg-[#f4f7f6]/80 backdrop-blur-xl z-50 py-4 -mx-4 px-4 lg:-mx-8 lg:px-8 shadow-[0_4px_30px_rgba(0,0,0,0.02)]">
-          <div>
+        <header className="flex justify-between items-center mb-6 lg:mb-10 sticky top-0 bg-[#f4f7f6]/80 backdrop-blur-xl z-30 py-4 -mx-4 px-4 lg:-mx-8 lg:px-8 shadow-[0_4px_30px_rgba(0,0,0,0.02)]">
+          <div className="flex items-center gap-3 lg:hidden">
+            <button onClick={() => setIsMobileMenuOpen(true)} className="p-2 -ml-2 bg-white rounded-lg shadow-sm border border-gray-100 text-gray-700">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+          </div>
+          
+          <div className="flex-1 flex justify-center lg:justify-start">
             {pathname === '/dashboard' && (
-              <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight hidden md:block">
+              <h1 className="text-lg sm:text-2xl font-extrabold text-gray-900 tracking-tight hidden md:block">
                 Welcome back, {user.firstName}! 👋
               </h1>
             )}
-            <div className="md:hidden relative w-full max-w-[200px]">
-              <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-              <input type="text" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-white border border-gray-100 rounded-full py-2 pl-9 pr-4 shadow-sm text-sm focus:ring-2 focus:ring-maroon/20 outline-none transition-all hover:border-gray-200" />
-            </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="hidden md:block relative w-72">
+          <div className="flex items-center gap-4 ml-auto">
+            <div className="hidden lg:block relative w-72">
               <svg className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
               <input type="text" placeholder="Search portal..." value={search} onChange={e => setSearch(e.target.value)} className="w-full bg-white/60 focus:bg-white border border-gray-200 rounded-full py-2.5 pl-11 pr-4 shadow-sm text-sm focus:ring-2 focus:ring-maroon/20 outline-none transition-all hover:border-gray-300" />
             </div>
-            <button onClick={() => showToast("You have 0 new notifications.", "info")} className="relative bg-white p-2.5 rounded-full shadow-sm text-gray-500 hover:text-maroon transition-colors border border-gray-100 hover:bg-gray-50">
+            <button onClick={() => showToast("You have 0 new notifications.", "info")} className="relative bg-white p-2.5 rounded-full shadow-sm text-gray-500 hover:text-maroon transition-colors border border-gray-100 hover:bg-gray-50 hidden sm:block">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
               <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-pink border-2 border-white rounded-full"></span>
             </button>
@@ -164,7 +182,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="w-8 h-8 rounded-full bg-maroon text-white flex items-center justify-center font-bold text-sm shadow-inner group-hover:scale-105 transition-transform">
                 {user.firstName ? user.firstName[0] : 'U'}
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col hidden sm:flex">
                 <span className="text-sm font-bold text-gray-800 leading-none group-hover:text-maroon transition-colors">{user.firstName} {user.lastName}</span>
                 <span className="text-[10px] text-gray-400 font-medium">Class of {user.classYear || 'N/A'}</span>
               </div>
