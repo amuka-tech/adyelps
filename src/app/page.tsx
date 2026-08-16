@@ -192,28 +192,44 @@ export default async function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto">
             <Link href="/dashboard/archive" className="group">
               <div className="bg-gray-50 border border-gray-100 p-8 rounded-2xl text-center hover:bg-maroon hover:text-white transition-all shadow-sm hover:shadow-xl h-full flex flex-col justify-center items-center">
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">📸</div>
+                <div className="mb-4 text-maroon group-hover:text-white group-hover:scale-110 transition-transform">
+                  <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900 group-hover:text-white">Digital Archive</h3>
                 <p className="text-sm text-gray-500 group-hover:text-pink">Relive the memories</p>
               </div>
             </Link>
             <Link href="/dashboard/welfare" className="group">
               <div className="bg-gray-50 border border-gray-100 p-8 rounded-2xl text-center hover:bg-maroon hover:text-white transition-all shadow-sm hover:shadow-xl h-full flex flex-col justify-center items-center">
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">🤝</div>
+                <div className="mb-4 text-maroon group-hover:text-white group-hover:scale-110 transition-transform">
+                  <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900 group-hover:text-white">Welfare</h3>
                 <p className="text-sm text-gray-500 group-hover:text-pink">Support our own</p>
               </div>
             </Link>
             <Link href="/dashboard/governance" className="group">
               <div className="bg-gray-50 border border-gray-100 p-8 rounded-2xl text-center hover:bg-maroon hover:text-white transition-all shadow-sm hover:shadow-xl h-full flex flex-col justify-center items-center">
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">🏛️</div>
+                <div className="mb-4 text-maroon group-hover:text-white group-hover:scale-110 transition-transform">
+                  <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                  </svg>
+                </div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900 group-hover:text-white">Governance</h3>
                 <p className="text-sm text-gray-500 group-hover:text-pink">Elections & Audits</p>
               </div>
             </Link>
             <Link href="/news-events" className="group">
               <div className="bg-gray-50 border border-gray-100 p-8 rounded-2xl text-center hover:bg-maroon hover:text-white transition-all shadow-sm hover:shadow-xl h-full flex flex-col justify-center items-center">
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">📰</div>
+                <div className="mb-4 text-maroon group-hover:text-white group-hover:scale-110 transition-transform">
+                  <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                  </svg>
+                </div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900 group-hover:text-white">News & Events</h3>
                 <p className="text-sm text-gray-500 group-hover:text-pink">Stay updated</p>
               </div>
