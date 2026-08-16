@@ -19,7 +19,7 @@ export default function ProfileProgress({ user }: { user: any }) {
       <div className="absolute top-0 left-0 w-full h-1.5 bg-gray-100">
         <div 
           className="h-full bg-gradient-to-r from-pink to-maroon transition-all duration-1000 ease-out"
-          style={{ width: ${completionPercentage}% }}
+          style={{ width: `${completionPercentage}%` }}
         />
       </div>
       
