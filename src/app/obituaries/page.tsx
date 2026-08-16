@@ -25,13 +25,10 @@ export default async function ObituariesPage() {
     <div className="flex flex-col w-full min-h-[calc(100vh-80px)] bg-gray-50">
       
       {/* Header Section */}
-      <section className="bg-gray-900 py-20 text-white text-center border-b-4 border-maroon">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <svg className="w-12 h-12 mx-auto mb-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"></path>
-          </svg>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 font-serif">In Memoriam</h1>
-          <p className="text-xl text-gray-400 font-light">
+      <section className="bg-darkblue py-16 text-center text-white">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">In Memoriam</h1>
+          <p className="text-xl text-skyblue max-w-2xl mx-auto">
             Honoring the lives and legacies of Adyel alumni and staff who have passed on.
           </p>
         </div>

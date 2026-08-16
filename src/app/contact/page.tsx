@@ -11,11 +11,13 @@ export default function ContactPage() {
   return (
     <div className="flex flex-col w-full">
       {/* Page Header */}
-      <section className="bg-white py-20 text-center border-b border-gray-200">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 text-maroon">Contact Us</h1>
-        <p className="text-xl max-w-2xl mx-auto px-4 text-gray-600">
-          Have a question or want to get involved? We'd love to hear from you.
-        </p>
+      <section className="bg-darkblue py-16 text-center text-white">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
+          <p className="text-xl text-skyblue max-w-2xl mx-auto">
+            Have a question or want to get involved? We'd love to hear from you.
+          </p>
+        </div>
       </section>
 
       <section className="py-16 bg-gray-50 flex-1">
