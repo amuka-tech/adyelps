@@ -70,88 +70,64 @@ export default async function Home() {
   return (
     <div className="flex flex-col w-full">
       {/* Hero Section */}
-      <section className="relative w-full min-h-[85vh] flex items-center justify-center overflow-hidden bg-gray-900">
-        {/* Modern Background with Gradients and Image */}
+      <section className="relative w-full h-[600px] md:h-[700px] flex items-center justify-center overflow-hidden">
+        {/* We use an absolute div for the background to apply an overlay */}
         <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-maroon/70 mix-blend-multiply z-10"></div>
           <Image 
             src="/hero-bg.png" 
             alt="Adyel Alumni Gathering"
             fill
-            className="object-cover object-center opacity-40 mix-blend-overlay"
+            className="object-cover object-center"
             priority
           />
-          {/* Advanced Gradient Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-maroon/60 to-gray-900 z-10"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-transparent to-gray-900 z-10 opacity-80"></div>
         </div>
         
-        <div className="relative z-20 text-center px-4 w-full max-w-5xl mx-auto flex flex-col items-center pt-20 pb-32">
-          {/* Floating Badge */}
-          <div className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-pink text-xs font-bold tracking-widest uppercase mb-8 shadow-2xl">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-            The Official Alumni Network
-          </div>
-          
-          {/* Main Typography */}
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-6 tracking-tight leading-[1.1] drop-shadow-2xl">
-            Adyel Boarding <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink to-red-400">Primary School</span>
+        <div className="relative z-20 text-center px-4 max-w-4xl mx-auto flex flex-col items-center">
+          <span className="inline-block py-1 px-3 rounded-full bg-white/20 backdrop-blur-md text-white border border-white/30 text-sm font-semibold tracking-wider mb-6 animate-fade-in-up">
+            WELCOME HOME
+          </span>
+          <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-2 drop-shadow-lg tracking-tight">
+            Adyel
           </h1>
-          
-          <p className="text-lg md:text-2xl font-medium text-gray-300 mb-12 max-w-2xl drop-shadow-md">
-            Connected through time. Reconnect with old friends, expand your professional network, and give back to our alma mater.
+          <p className="text-xl md:text-3xl font-medium text-pink mb-10 drop-shadow-md">
+            Connected through time.
           </p>
           
-          {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto">
             {isLoggedIn ? (
               <Link href="/dashboard" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 bg-maroon hover:bg-red-800 text-white shadow-[0_0_40px_rgba(128,0,0,0.5)] border-0 hover:scale-105 transition-all duration-300">
+                <Button size="lg" className="w-full sm:w-auto shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                   Go to Dashboard
                 </Button>
               </Link>
             ) : (
               <Link href="/membership" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto text-lg h-14 px-8 bg-white hover:bg-gray-100 text-maroon shadow-[0_0_40px_rgba(255,255,255,0.2)] border-0 hover:scale-105 transition-all duration-300">
-                  Join the Network
+                <Button size="lg" className="w-full sm:w-auto shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                  Join the Alumni Network
                 </Button>
               </Link>
             )}
             <Link href="/give-back" className="w-full sm:w-auto">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg h-14 px-8 text-white border-white/30 hover:bg-white/10 backdrop-blur-md hover:scale-105 transition-all duration-300">
-                Support Our Causes
+              <Button size="lg" variant="outline" className="w-full sm:w-auto text-white border-white hover:bg-white hover:text-maroon backdrop-blur-sm shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                Donate to our Causes
               </Button>
             </Link>
           </div>
-
-          {/* Social Proof / Avatars */}
-          <div className="mt-12 flex flex-col items-center justify-center gap-3">
-            <div className="flex -space-x-3">
-              {[1,2,3,4].map(i => (
-                <div key={i} className="w-10 h-10 rounded-full border-2 border-gray-900 bg-gray-300 flex items-center justify-center overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-pink to-maroon opacity-80"></div>
-                </div>
-              ))}
-              <div className="w-10 h-10 rounded-full border-2 border-gray-900 bg-gray-800 flex items-center justify-center text-xs font-bold text-white">
-                +2k
-              </div>
-            </div>
-            <p className="text-sm text-gray-400 font-medium">Joined by 2,500+ alumni globally</p>
-          </div>
         </div>
         
-        {/* Modern Wave/Fade Divider */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-50 to-transparent z-20 pointer-events-none"></div>
+        {/* Decorative wave or shape divider at the bottom could go here */}
+        <div className="absolute bottom-0 w-full h-16 bg-gradient-to-t from-white to-transparent z-20"></div>
       </section>
 
-      {/* Quick Stats Section - Floated up into the hero */}
-      <section className="relative z-30 -mt-20 mx-4 md:mx-10 lg:mx-20 mb-10">
-        <div className="container mx-auto px-0">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8 bg-white/80 backdrop-blur-2xl p-4 md:p-8 rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-white/50">
+      {/* Quick Stats Section */}
+      <section className="py-16 bg-white relative z-30 -mt-8 rounded-t-3xl shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] mx-4 md:mx-10 lg:mx-20">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {stats.map((stat, idx) => (
-              <div key={idx} className="text-center p-4 md:p-6 rounded-2xl hover:bg-white/50 transition-colors">
-                <div className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-maroon to-pink mb-2 drop-shadow-sm">{stat.value}</div>
-                <div className="text-gray-700 font-bold tracking-wide text-sm uppercase">{stat.label}</div>
+              <div key={idx} className="text-center p-6 rounded-2xl bg-gray-50 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                <div className="text-4xl md:text-5xl font-extrabold text-maroon mb-2">{stat.value}</div>
+                <div className="text-gray-600 font-medium">{stat.label}</div>
               </div>
             ))}
           </div>
