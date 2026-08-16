@@ -10,6 +10,8 @@ export default function SetupForm({ user }: { user: any }): any {
   const [error, setError] = useState('');
   
   const [formData, setFormData] = useState({
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
     phone: user?.phone || '',
     class_year: user?.class_year || '',
     profession: user?.profession || '',
@@ -33,6 +35,8 @@ export default function SetupForm({ user }: { user: any }): any {
       const { error: updateError } = await supabase
         .from('users')
         .update({
+          first_name: formData.first_name,
+          last_name: formData.last_name,
           phone: formData.phone,
           class_year: formData.class_year,
           profession: formData.profession,
@@ -58,6 +62,35 @@ export default function SetupForm({ user }: { user: any }): any {
           {error}
         </div>
       )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">
+            First Name
+          </label>
+          <input
+            type="text"
+            name="first_name"
+            value={formData.first_name}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-maroon/20 focus:border-maroon transition-all bg-white"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-1">
+            Last Name
+          </label>
+          <input
+            type="text"
+            name="last_name"
+            value={formData.last_name}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-maroon/20 focus:border-maroon transition-all bg-white"
+          />
+        </div>
+      </div>
 
       <div>
         <label className="block text-sm font-bold text-gray-700 mb-1">
