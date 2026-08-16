@@ -70,7 +70,7 @@ export default async function Home() {
   return (
     <div className="flex flex-col w-full">
       {/* Hero Section */}
-      <section className="relative w-full h-[600px] md:h-[700px] flex items-center justify-center overflow-hidden">
+      <div className="relative w-full h-[600px] md:h-[700px] flex items-center justify-center overflow-hidden">
         {/* We use an absolute div for the background to apply an overlay */}
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-maroon/70 mix-blend-multiply z-10"></div>
@@ -118,10 +118,10 @@ export default async function Home() {
         
         {/* Decorative wave or shape divider at the bottom could go here */}
         <div className="absolute bottom-0 w-full h-16 bg-gradient-to-t from-white to-transparent z-20"></div>
-      </section>
+      </div>
 
       {/* Quick Stats Section */}
-      <section className="py-16 bg-white relative z-30 -mt-8 rounded-t-3xl shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] mx-4 md:mx-10 lg:mx-20">
+      <div className="py-16 bg-white relative z-30 -mt-8 rounded-t-3xl shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] mx-4 md:mx-10 lg:mx-20">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {stats.map((stat, idx) => (
@@ -132,10 +132,10 @@ export default async function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Latest News & Upcoming Events */}
-      <section className="py-20 bg-gray-50">
+      <div className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Latest Updates</h2>
@@ -179,10 +179,10 @@ export default async function Home() {
             </Link>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Explore Platform Section */}
-      <section className="py-20 bg-white">
+      <div className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Explore Our Platform</h2>
@@ -220,10 +220,10 @@ export default async function Home() {
             </Link>
           </div>
         </div>
-      </section>
+      </div>
       
       {/* Member Benefits Section */}
-      <section className="py-20 bg-darkblue text-white">
+      <div className="py-20 bg-darkblue text-white">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <span className="text-skyblue font-bold tracking-wider text-sm uppercase mb-2 block">Why Join Us?</span>
@@ -295,10 +295,10 @@ export default async function Home() {
             )}
           </div>
         </div>
-      </section>
+      </div>
       
       {/* Short About Teaser */}
-      <section className="py-20 bg-white">
+      <div className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
             <div className="w-full md:w-1/2">
@@ -343,7 +343,7 @@ export default async function Home() {
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
