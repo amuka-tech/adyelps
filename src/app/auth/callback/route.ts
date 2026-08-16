@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { cookies } from "next/headers";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -8,18 +9,19 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get("next") ?? "/dashboard";
 
   if (code) {
+    const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           getAll() {
-            return request.cookies.getAll();
+            return cookieStore.getAll();
           },
           setAll(cookiesToSet) {
             try {
               cookiesToSet.forEach(({ name, value, options }) =>
-                request.cookies.set(name, value)
+                cookieStore.set(name, value, options)
               );
             } catch (error) {
               // The `setAll` method was called from a Server Component.
@@ -31,7 +33,13 @@ export async function GET(request: NextRequest) {
       }
     );
     const { data: authData, error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error && authData?.session) {
+    
+    if (error) {
+      console.error("Auth callback error:", error.message);
+      return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
+    }
+
+    if (authData?.session) {
       const user = authData.session.user;
       
       // Check if user already exists in public.users and what their profile status is
