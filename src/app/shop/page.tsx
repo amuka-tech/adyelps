@@ -32,11 +32,13 @@ export default function ShopPage() {
   return (
     <div className="flex flex-col w-full">
       {/* Page Header */}
-      <section className="bg-gray-100 py-20 text-maroon-dark text-center border-b">
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">Official Alumni Shop</h1>
-        <p className="text-xl max-w-2xl mx-auto px-4 text-gray-600">
-          Wear your pride. All proceeds go towards funding school projects.
-        </p>
+      <section className="bg-darkblue py-16 text-center text-white">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Official Alumni Shop</h1>
+          <p className="text-xl text-skyblue max-w-2xl mx-auto">
+            Wear your pride. All proceeds go towards funding school projects.
+          </p>
+        </div>
       </section>
 
       {/* Shop Items */}

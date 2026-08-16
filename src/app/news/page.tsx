@@ -32,10 +32,10 @@ export default function NewsPage() {
   return (
     <div className="flex flex-col w-full bg-gray-50 min-h-[calc(100vh-80px)]">
       {/* Header */}
-      <section className="bg-white py-16 border-b border-gray-200">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">School & Alumni News</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+      <section className="bg-darkblue py-16 text-center text-white">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">School & Alumni News</h1>
+          <p className="text-xl text-skyblue max-w-2xl mx-auto">
             Stay up to date with the latest developments, achievements, and announcements from Adyel and its vibrant alumni community.
           </p>
         </div>
