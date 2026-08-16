@@ -54,10 +54,10 @@ export default function OverviewPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
               </button>
               <div className="w-20 h-20 bg-white rounded-full mx-auto mb-3 shadow-inner flex items-center justify-center text-maroon font-black text-3xl">
-                {user.firstName ? user.firstName[0] : 'A'}
+                {user.first_name ? user.first_name[0] : 'A'}
               </div>
-              <h3 className="text-white font-bold text-xl">{user.firstName} {user.lastName}</h3>
-              <p className="text-white/80 text-xs font-medium tracking-widest uppercase mt-1">Class of {user.classYear || 'N/A'}</p>
+              <h3 className="text-white font-bold text-xl">{user.first_name} {user.last_name}</h3>
+              <p className="text-white/80 text-xs font-medium tracking-widest uppercase mt-1">Class of {user.class_year || 'N/A'}</p>
             </div>
             <div className="p-8 flex flex-col items-center bg-gray-50">
               <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-4">
@@ -65,7 +65,7 @@ export default function OverviewPage() {
               </div>
               <div className="w-full space-y-2 text-center">
                 <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Member ID</p>
-                <p className="font-mono text-gray-900 font-bold bg-gray-200 py-1.5 px-4 rounded-lg inline-block">ADYL-{user.id ? user.id.toString().padStart(4, '0') : '0000'}</p>
+                <p className="font-mono text-gray-900 font-bold bg-gray-200 py-1.5 px-4 rounded-lg inline-block">ADYL-{user.id ? user.id.toString().substring(0, 8).toUpperCase() : '00000000'}</p>
               </div>
             </div>
           </div>
@@ -94,7 +94,7 @@ export default function OverviewPage() {
 
       <div className="flex flex-col sm:flex-row justify-between sm:items-end mb-6 gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Welcome back, {user.firstName}!</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Welcome back, {user.first_name}!</h1>
           <p className="text-gray-500 text-sm">Here is what's happening in your alumni network today.</p>
         </div>
         <Link href="/dashboard/events" className="bg-maroon text-white font-medium text-sm px-6 py-2.5 rounded-full shadow-md shadow-maroon/20 hover:bg-maroon-dark transition-all flex items-center gap-2">

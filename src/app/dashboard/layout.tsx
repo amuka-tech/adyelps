@@ -88,7 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="p-8 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-maroon rounded-full flex items-center justify-center text-white font-bold text-xl">
-              {user.firstName ? user.firstName[0] : 'A'}
+              {user.first_name ? user.first_name[0] : 'A'}
             </div>
             <span className="font-bold text-xl text-gray-900">Members</span>
           </div>
@@ -147,7 +147,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex-1 flex justify-start">
             {pathname === '/dashboard' && (
               <h1 className="text-lg sm:text-2xl font-extrabold text-gray-900 tracking-tight hidden md:block">
-                Welcome back, {user.firstName}! 👋
+                Welcome back, {user.first_name}! 👋
               </h1>
             )}
           </div>
@@ -163,11 +163,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
             <div className="flex items-center gap-3 bg-white pl-1.5 pr-4 py-1.5 rounded-full shadow-sm cursor-pointer border border-gray-100 hover:border-maroon/30 transition-all group">
               <div className="w-8 h-8 rounded-full bg-maroon text-white flex items-center justify-center font-bold text-sm shadow-inner group-hover:scale-105 transition-transform">
-                {user.firstName ? user.firstName[0] : 'U'}
+                {user.first_name ? user.first_name[0] : 'U'}
               </div>
               <div className="flex flex-col hidden sm:flex">
-                <span className="text-sm font-bold text-gray-800 leading-none group-hover:text-maroon transition-colors">{user.firstName} {user.lastName}</span>
-                <span className="text-[10px] text-gray-400 font-medium">Class of {user.classYear || 'N/A'}</span>
+                <span className="text-sm font-bold text-gray-800 leading-none group-hover:text-maroon transition-colors">{user.first_name} {user.last_name}</span>
+                <span className="text-[10px] text-gray-400 font-medium">Class of {user.class_year || 'N/A'}</span>
               </div>
             </div>
           </div>
