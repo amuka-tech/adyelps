@@ -1,96 +1,94 @@
-# Adyel Primary School Class of 2016 Alumni Network
+# Adyel Alumni Network
 
-Welcome to the official web platform for the **Adyel Primary School Class of 2016 Alumni Association**. 
-Under our slogan **"Connected through time."**, this application serves as the central hub for our alumni to connect, give back to our alma mater, and grow together.
+Welcome to the official web platform for the **Adyel Primary School Alumni Association**. 
+Under our slogan **"Connected through time."**, this application serves as the central hub for our alumni to connect, give back to our alma mater, grow professionally, and support each other.
+
+---
 
 ## 🌟 Key Features
 
-* **Authentication & RBAC:** Secure JWT-based authentication with distinct roles (`MEMBER`, `ADMIN`, `SUPER_ADMIN`).
+* **Authentication & RBAC:** Secure Google OAuth and Email authentication with distinct roles (`MEMBER`, `ADMIN`, `SUPER_ADMIN`) using Supabase Auth.
+* **Progressive Web App (PWA):** Installable on iOS and Android devices for a native app-like experience with an automatic install prompt.
 * **Give Back (Fundraising):** Seamlessly donate to our flagship projects (e.g., Parents' Waiting Pavilion, Sanitary Pads Support, Education Support).
 * **News & Events:** Stay updated with school and alumni news. Includes event ticketing with simulated mobile money checkout and QR code generation.
-* **Alumni Directory:** Find and connect with fellow Class of 2016 members.
-* **Welfare:** A dedicated space for obituaries, condolences, and welfare contributions.
+* **Alumni Directory:** Find and connect with fellow members based on graduation year, profession, or location.
+* **Welfare:** A dedicated space for obituaries, condolences, and welfare contributions to support members in times of need.
 * **Marketplace & Careers:** Discover alumni-owned businesses, post job openings, and request internal referrals.
 * **Governance:** Participate in alumni association polls and elections.
 * **Mentorship:** Connect with mentors in various professional fields.
+* **Mobile-First Dashboards:** A fully responsive, app-like bottom navigation layout for both Users and Super Admins.
 
-## 🛠️ Technology Stack
+---
 
-* **Framework:** [Next.js](https://nextjs.org/) (App Router, Version 16+)
-* **UI/Styling:** React 19, [Tailwind CSS v4](https://tailwindcss.com/)
-* **Database:** MySQL (interfaced via `mysql2`)
-* **Security/Auth:** Supabase Auth
-* **Utilities:** `qrcode.react`, `html5-qrcode`
+## 🛠 Technology Stack
+
+* **Framework:** [Next.js](https://nextjs.org/) 16+ (App Router, Server Components, Turbopack)
+* **Language:** TypeScript
+* **UI/Styling:** React 19, [Tailwind CSS v4](https://tailwindcss.com/), inline SVG Heroicons
+* **Database & Auth:** [Supabase](https://supabase.com/) (PostgreSQL + Row Level Security)
+* **Deployment:** Vercel
+
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-* **Node.js** (v18 or higher recommended)
-* **MySQL** Server (running locally on default port `3306`)
+* **Node.js** (v20 or higher recommended)
+* **Supabase** Project (for Database, Auth, and Storage)
 
 ### 1. Installation
 Clone the repository and install the dependencies:
 ```bash
 git clone <repository_url>
-cd AdyelPS
+cd obgs
 npm install
 ```
 
 ### 2. Environment Variables
-Create a `.env` file in the root directory and configure your database and JWT secret:
+Create a `.env.local` file in the root directory and configure your Supabase keys:
 ```env
-# Database Configuration
-DB_HOST=127.0.0.1
-DB_USER=root
-DB_PASS=
-DB_NAME=adyeldb
-
-# Supabase Auth
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-### 3. Database Initialization
-Ensure your MySQL server is running and you have created a database named `adyeldb`. 
-You can initialize the database schema and seed dummy data using the provided scripts in the `scripts/` directory:
-
-```bash
-# Example: Running the main seed script
-node scripts/seed_all.js
-
-# Note: You can explore other scripts like `setup_rbac.js`, `setup_events.js`, or `rebrand_projects.js` depending on your testing needs.
-```
-
-### 4. Running the Development Server
-Start the Next.js development server:
+### 3. Running the Development Server
+Start the Next.js development server with Turbopack:
 ```bash
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
 
-## 📁 Project Structure
+---
+
+## 📂 Project Structure
 
 ```
-├── public/                 # Static assets (images, icons)
-├── scripts/                # Database migration, setup, and seeding scripts
+├── public/                 # Static assets (images, icons, PWA manifest)
 ├── src/
-│   ├── app/                # Next.js App Router pages & API routes
-│   │   ├── api/            # Backend API endpoints (Auth, Events, Projects, etc.)
+│   ├── app/                # Next.js App Router (Pages, Layouts)
+│   │   ├── auth/           # OAuth callbacks
 │   │   ├── dashboard/      # Protected alumni dashboard pages
+│   │   ├── superadmin/     # Super Admin management panel
 │   │   └── ...             # Public pages (Home, About, Give Back, etc.)
-│   ├── components/         # Reusable React components (UI elements, Layouts)
-│   └── lib/                # Shared utilities (Database connection, JWT helpers)
-├── package.json            # Project dependencies and scripts
-└── README.md               # This file
+│   ├── components/         # Reusable React components (UI elements)
+│   │   ├── admin/          # Superadmin dashboard components
+│   │   └── layout/         # Navbar, Footer, Mobile Menus
+│   └── utils/
+│       └── supabase/       # Supabase SSR and Client configurations
+├── tailwind.config.ts      # Tailwind CSS configuration
+└── package.json            # Project dependencies and scripts
 ```
 
-## 👥 Roles & Access
+---
 
-* **MEMBER:** Default role upon registration. Can view directory, RSVP to events, donate, and post in the marketplace.
+## 🔒 Roles & Access
+
+* **MEMBER:** Default role upon registration. Can view directory, RSVP to events, donate, access welfare, and post in the marketplace.
 * **ADMIN:** Can manage events, news, welfare updates, and view analytics.
-* **SUPER_ADMIN:** Has full control over the platform, including role management and system settings.
+* **SUPER_ADMIN:** Has full control over the platform, including role management, database moderation, system settings, and complete analytics access.
 
-*(To create an admin account for testing, you can run the `scripts/create_superadmin.js` script.)*
+---
 
-## 📝 License
-This project is proprietary and built specifically for the Adyel Primary School Class of 2016 Alumni Association.
+## 📄 License
+This project is proprietary and built specifically for the Adyel Primary School Alumni Association.
