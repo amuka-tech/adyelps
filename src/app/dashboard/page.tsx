@@ -90,9 +90,9 @@ export default function OverviewPage() {
         </div>
       )}
 
-      <div className="flex justify-between items-end mb-8">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-end mb-6 gap-3">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-1">Welcome back, {user.firstName}!</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">Welcome back, {user.firstName}!</h1>
           <p className="text-gray-500 text-sm">Here is what's happening in your alumni network today.</p>
         </div>
         <Link href="/dashboard/events" className="bg-maroon text-white font-medium text-sm px-6 py-2.5 rounded-full shadow-md shadow-maroon/20 hover:bg-maroon-dark transition-all flex items-center gap-2">

@@ -21,6 +21,7 @@ export default function SuperAdminDashboard() {
   const [activeTab, setActiveTab] = useState('analytics');
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [error, setError] = useState('');
   
   // App-level state for Badges & Basic Modules
@@ -172,14 +173,12 @@ export default function SuperAdminDashboard() {
     if (!error) fetchData(); else alert(`Error updating order`);
   };
 
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   if (error) return <div className="h-screen flex items-center justify-center bg-[#f4f7f6] text-red-500 font-bold text-2xl">{error}</div>;
   if (loading) return <div className="h-screen flex items-center justify-center bg-[#f4f7f6] text-gray-500 font-medium">Loading Workspace...</div>;
 
   const NavItem = ({ id, label, icon, badge }: { id: string, label: string, icon?: React.ReactNode, badge?: number }) => (
     <button 
-      onClick={() => { setActiveTab(id); setIsMobileMenuOpen(false); }}
+      onClick={() => setActiveTab(id)}
       className={`w-full flex items-center justify-between px-4 py-3 mb-1.5 rounded-2xl transition-all duration-300 font-medium text-sm group ${activeTab === id ? 'bg-maroon text-white shadow-md shadow-maroon/20 translate-x-1' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 hover:translate-x-1'}`}
     >
       <div className="flex items-center gap-3">
@@ -194,25 +193,14 @@ export default function SuperAdminDashboard() {
 
   return (
     <div className="h-screen w-full flex bg-[#f4f7f6] text-gray-800 font-sans overflow-hidden relative">
-      
-      {/* MOBILE OVERLAY */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        ></div>
-      )}
 
       {/* SIDEBAR */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 h-[calc(100vh-2rem)] bg-white m-4 rounded-[2rem] shadow-lg lg:shadow-sm flex flex-col overflow-y-auto hide-scrollbar border border-gray-100 transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-[150%] lg:translate-x-0'}`}>
+      <aside className="hidden lg:flex flex-col w-64 h-[calc(100vh-2rem)] bg-white m-4 rounded-[2rem] shadow-sm overflow-y-auto hide-scrollbar border border-gray-100">
         <div className="p-8 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-maroon rounded-full flex items-center justify-center text-white font-bold text-xl">A</div>
             <span className="font-bold text-xl text-gray-900">Adyel Admin</span>
           </div>
-          <button className="lg:hidden text-gray-400 hover:text-gray-900" onClick={() => setIsMobileMenuOpen(false)}>
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-          </button>
         </div>
 
         <div className="px-4 flex-1">
