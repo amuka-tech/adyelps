@@ -1,6 +1,8 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
+import ConfirmDialog from './ConfirmDialog';
 
 export default function AdminUsers({ 
   users, 
@@ -15,8 +17,25 @@ export default function AdminUsers({
   handleRoleChange: (userId: string, roleId: number) => void; 
   handleStatusChange: (userId: string, status: string) => void; 
 }) {
+  const [userToDisable, setUserToDisable] = useState<string | null>(null);
+
+  const handleDisableUser = async () => {
+    if (!userToDisable) return;
+    const supabase = createClient();
+    await supabase.from('users').update({ status: 'BANNED' }).eq('id', userToDisable);
+    setUserToDisable(null);
+    window.location.reload();
+  };
+
   return (
     <div>
+      <ConfirmDialog
+        isOpen={userToDisable !== null}
+        title="Disable Account"
+        message="This will permanently ban this user from the platform. They will not be able to log in."
+        onConfirm={handleDisableUser}
+        onCancel={() => setUserToDisable(null)}
+      />
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-bold text-gray-900">User Role Management</h3>
         <input 
@@ -90,6 +109,11 @@ export default function AdminUsers({
                     <div>
                       <div className="font-bold text-gray-900 leading-tight">{user.first_name} {user.last_name}</div>
                       <div className="text-xs text-gray-500">{user.email}</div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        {user.phone && <span className="mr-2">📞 {user.phone}</span>}
+                        {user.class_year && <span className="mr-2">🎓 Class of {user.class_year}</span>}
+                        {user.profession && <span>💼 {user.profession}</span>}
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -110,12 +134,15 @@ export default function AdminUsers({
                   </select>
                 </td>
                 <td className="p-4 text-right rounded-r-xl border-y border-r border-gray-100 group-hover:border-gray-200">
-                  <select onChange={(e) => handleStatusChange(user.id, e.target.value)} className={`${user.account_status === 'ACTIVE' ? 'bg-green-50 text-green-700 border-green-100 hover:bg-green-100' : 'bg-red-50 text-red-700 border-red-100 hover:bg-red-100'} border text-sm font-bold rounded-xl p-2.5 outline-none cursor-pointer transition-colors focus:ring-2`}>
-                    <option value="">{user.account_status || 'ACTIVE'}</option>
-                    <option value="SUSPENDED">Suspend Account</option>
-                    <option value="BANNED">Ban Account</option>
-                    <option value="ACTIVE">Reactivate</option>
-                  </select>
+                  <div className="flex items-center justify-end gap-2">
+                    <select onChange={(e) => handleStatusChange(user.id, e.target.value)} className={`${user.account_status === 'ACTIVE' ? 'bg-green-50 text-green-700 border-green-100 hover:bg-green-100' : 'bg-red-50 text-red-700 border-red-100 hover:bg-red-100'} border text-sm font-bold rounded-xl p-2.5 outline-none cursor-pointer transition-colors focus:ring-2`}>
+                      <option value="">{user.account_status || 'ACTIVE'}</option>
+                      <option value="SUSPENDED">Suspend Account</option>
+                      <option value="BANNED">Ban Account</option>
+                      <option value="ACTIVE">Reactivate</option>
+                    </select>
+                    <button onClick={() => setUserToDisable(user.id)} className="bg-red-100 text-red-700 hover:bg-red-200 px-3 py-2 rounded-xl text-sm font-bold transition-colors">Disable</button>
+                  </div>
                 </td>
               </tr>
             ))}

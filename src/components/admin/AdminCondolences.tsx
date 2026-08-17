@@ -1,6 +1,8 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
+import ConfirmDialog from './ConfirmDialog';
 
 export default function AdminCondolences({ 
   condolences, 
@@ -9,9 +11,27 @@ export default function AdminCondolences({
   condolences: any[]; 
   handleModerateCondolence: (id: number, status: string) => void; 
 }) {
+  const [condolenceToDelete, setCondolenceToDelete] = useState<number | null>(null);
+
+  const handleDeleteCondolence = async () => {
+    if (condolenceToDelete === null) return;
+    const supabase = createClient();
+    await supabase.from('condolences').delete().eq('id', condolenceToDelete);
+    setCondolenceToDelete(null);
+    window.location.reload();
+  };
+
   return (
     <div>
       <h3 className="text-xl font-bold text-gray-900 mb-6">Condolence Moderation</h3>
+
+      <ConfirmDialog
+        isOpen={condolenceToDelete !== null}
+        title="Delete Condolence"
+        message="Delete this condolence message permanently?"
+        onConfirm={handleDeleteCondolence}
+        onCancel={() => setCondolenceToDelete(null)}
+      />
       {condolences.length === 0 ? <div className="text-center py-20 text-gray-400">No pending condolences.</div> : (
         <div className="space-y-4">
           {condolences.map(c => (
@@ -29,6 +49,7 @@ export default function AdminCondolences({
               <div className="flex gap-2 whitespace-nowrap mt-4 md:mt-0">
                 <button onClick={() => handleModerateCondolence(c.id, 'APPROVED')} className="bg-green-100 text-green-700 hover:bg-green-200 px-4 py-2 rounded-xl text-sm font-bold transition-colors">Approve</button>
                 <button onClick={() => handleModerateCondolence(c.id, 'REJECTED')} className="bg-red-50 border border-red-100 text-red-600 hover:bg-red-100 px-4 py-2 rounded-xl text-sm font-bold transition-colors">Reject</button>
+                <button onClick={() => setCondolenceToDelete(c.id)} className="bg-red-50 border border-red-100 text-red-600 hover:bg-red-100 px-4 py-2 rounded-xl text-sm font-bold transition-colors">Delete</button>
               </div>
             </div>
           ))}

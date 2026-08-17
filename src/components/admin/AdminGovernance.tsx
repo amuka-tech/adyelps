@@ -20,6 +20,58 @@ export default function AdminGovernance({ polls, documents, fetchData }: { polls
   const [docType, setDocType] = useState('CONSTITUTION');
   const [docUrl, setDocUrl] = useState('');
   const [loadingDoc, setLoadingDoc] = useState(false);
+  
+  const [editingPoll, setEditingPoll] = useState<any>(null);
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+  const [editingDoc, setEditingDoc] = useState<any>(null);
+
+  const handleUpdatePoll = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const supabase = createClient();
+    const { error } = await supabase.from('polls').update({
+      title: editingPoll.title,
+      description: editingPoll.description,
+      end_date: editingPoll.end_date
+    }).eq('id', editingPoll.id);
+
+    if (!error) {
+      alert('Poll updated!');
+      setEditingPoll(null);
+      fetchData();
+    } else {
+      alert(error.message);
+    }
+  };
+
+  const handleDeleteItem = async (table: string, id: number) => {
+    const supabase = createClient();
+    const { error } = await supabase.from(table).delete().eq('id', id);
+    if (!error) {
+      alert('Deleted!');
+      setDeleteTarget(null);
+      fetchData();
+    } else {
+      alert(error.message);
+    }
+  };
+
+  const handleUpdateDoc = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const supabase = createClient();
+    const { error } = await supabase.from('documents').update({
+      title: editingDoc.title,
+      doc_type: editingDoc.doc_type,
+      file_url: editingDoc.file_url
+    }).eq('id', editingDoc.id);
+
+    if (!error) {
+      alert('Document updated!');
+      setEditingDoc(null);
+      fetchData();
+    } else {
+      alert(error.message);
+    }
+  };
 
   const handleAddOption = () => setOptions([...options, '']);
   const handleOptionChange = (idx: number, val: string) => {
@@ -159,7 +211,11 @@ export default function AdminGovernance({ polls, documents, fetchData }: { polls
                 <div key={poll.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
                   <div className="flex justify-between items-start mb-2">
                     <h5 className="font-bold text-gray-900">{poll.title}</h5>
-                    <span className="text-[10px] uppercase font-bold bg-gray-100 text-gray-500 px-2 py-1 rounded-md">{poll.poll_type}</span>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-[10px] uppercase font-bold bg-gray-100 text-gray-500 px-2 py-1 rounded-md">{poll.poll_type}</span>
+                      <button onClick={() => setEditingPoll(poll)} className="text-xs text-blue-600 hover:underline font-bold">Edit</button>
+                      <button onClick={() => setDeleteTarget({ type: 'polls', id: poll.id, title: poll.title })} className="text-xs text-red-600 hover:underline font-bold">Delete</button>
+                    </div>
                   </div>
                   <p className="text-xs text-gray-500 mb-2">{new Date(poll.end_date) > new Date() ? 'Active until ' : 'Ended on '} {new Date(poll.end_date).toLocaleDateString()}</p>
                 </div>
@@ -203,9 +259,83 @@ export default function AdminGovernance({ polls, documents, fetchData }: { polls
                     <h5 className="font-bold text-gray-900 text-sm mb-1">{doc.title}</h5>
                     <span className="text-[10px] uppercase font-bold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md">{doc.doc_type}</span>
                   </div>
-                  <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-maroon hover:underline text-sm font-bold">View</a>
+                  <div className="flex gap-3 items-center">
+                    <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="text-maroon hover:underline text-sm font-bold">View</a>
+                    <button onClick={() => setEditingDoc(doc)} className="text-xs text-blue-600 hover:underline font-bold">Edit</button>
+                    <button onClick={() => setDeleteTarget({ type: 'documents', id: doc.id, title: doc.title })} className="text-xs text-red-600 hover:underline font-bold">Delete</button>
+                  </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editingPoll && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4">Edit Poll</h3>
+            <form onSubmit={handleUpdatePoll} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Title</label>
+                <input required type="text" value={editingPoll.title} onChange={e => setEditingPoll({...editingPoll, title: e.target.value})} className="w-full px-4 py-2 border rounded-xl" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Description</label>
+                <textarea required value={editingPoll.description} onChange={e => setEditingPoll({...editingPoll, description: e.target.value})} className="w-full px-4 py-2 border rounded-xl" rows={3}></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">End Date</label>
+                <input required type="datetime-local" value={editingPoll.end_date ? editingPoll.end_date.split('.')[0] : ''} onChange={e => setEditingPoll({...editingPoll, end_date: e.target.value})} className="w-full px-4 py-2 border rounded-xl" />
+              </div>
+              <div className="flex gap-2 justify-end mt-6">
+                <button type="button" onClick={() => setEditingPoll(null)} className="px-4 py-2 text-gray-500 font-bold">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-maroon text-white font-bold rounded-xl hover:bg-maroon-dark">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {editingDoc && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4">Edit Document</h3>
+            <form onSubmit={handleUpdateDoc} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Title</label>
+                <input required type="text" value={editingDoc.title} onChange={e => setEditingDoc({...editingDoc, title: e.target.value})} className="w-full px-4 py-2 border rounded-xl" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Type</label>
+                <select value={editingDoc.doc_type} onChange={e => setEditingDoc({...editingDoc, doc_type: e.target.value})} className="w-full px-4 py-2 border rounded-xl">
+                  <option value="CONSTITUTION">Constitution</option>
+                  <option value="MINUTES">Meeting Minutes</option>
+                  <option value="FINANCIAL">Financial Report</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">File URL</label>
+                <input required type="url" value={editingDoc.file_url} onChange={e => setEditingDoc({...editingDoc, file_url: e.target.value})} className="w-full px-4 py-2 border rounded-xl" />
+              </div>
+              <div className="flex gap-2 justify-end mt-6">
+                <button type="button" onClick={() => setEditingDoc(null)} className="px-4 py-2 text-gray-500 font-bold">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-maroon text-white font-bold rounded-xl hover:bg-maroon-dark">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-sm text-center">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Confirm Deletion</h3>
+            <p className="text-gray-500 mb-6">Are you sure you want to delete "{deleteTarget.title}"? This cannot be undone.</p>
+            <div className="flex gap-2 justify-center">
+              <button onClick={() => setDeleteTarget(null)} className="px-4 py-2 text-gray-500 font-bold">Cancel</button>
+              <button onClick={() => handleDeleteItem(deleteTarget.type, deleteTarget.id)} className="px-4 py-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700">Yes, Delete</button>
             </div>
           </div>
         </div>
