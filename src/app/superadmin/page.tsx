@@ -305,7 +305,7 @@ export default function SuperAdminDashboard() {
 
           {/* DYNAMIC CONTENT AREA */}
           <div className="bg-white lg:bg-white rounded-none lg:rounded-[2rem] p-0 lg:p-8 lg:shadow-sm lg:border lg:border-gray-100 min-h-[400px]">
-          {activeTab === 'users' && <AdminUsers users={users} search={search} setSearch={setSearch} handleRoleChange={handleRoleChange} handleStatusChange={handleStatusChange} />}
+          {activeTab === 'users' && <AdminUsers />}
           {activeTab === 'jobs' && <AdminJobs pendingJobs={pendingJobs} handleModerateJob={handleModerateJob} />}
           {activeTab === 'businesses' && <AdminBusinesses pendingBusinesses={pendingBusinesses} handleModerateBusiness={handleModerateBusiness} />}
           {activeTab === 'approvals' && <AdminApprovals contributions={contributions} handleVerifyContribution={handleVerifyContribution} />}
